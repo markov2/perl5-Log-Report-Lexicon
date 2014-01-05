@@ -1,0 +1,30 @@
+
+==== version history of Log::Report::Lexicon
+
+Unless noted otherwise, these changes where initiated and applied by
+Mark Overmeer.
+
+bugs:
+	- with multiple domains extracted at once, remove references which
+	  appear in one PO but the file moved to other domain, not scanned
+	  in the same xgettext-perl run.
+	- manual-page for xgettext-perl is missing
+
+wishlist:
+	- let xgettext-perl produce mo files as well.
+	- plugin for Dancer
+	- convert TT usage example into a real TT plugin.
+
+version 1.00: Sun Jan  5 17:30:43 CET 2014
+	Split-off from Log::Report
+
+	Fixes:
+	- remove references to files which have disappeared from the set.
+
+	Improvements:
+	- add ::Lexicon as main extry point
+	- add ::Translator::Context and smart support for msgctxt
+	- command-line parameter option in xgettext-perl
+	- add msgctxt support to tables maintained in POT, POTcompact,
+	  and MOcompact format.
+	- more documentation

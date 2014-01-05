@@ -1,0 +1,146 @@
+#!/usr/bin/env perl
+# implements xgettext for Log::Report only, using Log::Report::Extract::PPI
+# Options like GNU's xgettext
+
+use warnings;
+use strict;
+
+use Log::Report 'log-report';
+use Getopt::Long qw/:config no_ignore_case bundling/;
+use File::Find   qw/find/;
+
+my $lang     = 'perl';
+my $version  = 0;
+my $help     = 0;
+my ($from, $output, $fn_match, %configs);
+my ($char_in, $char_out, $default_domain, $mode, $template);
+
+GetOptions
+   'config|c=s'        => \%configs   # domain configurations
+ , 'domain|d=s'        => \$default_domain    # for templates
+ , 'files-from|f=s'    => \$from      # file with filenames (MANIFEST?) or '-'
+ , 'files-match|m=s'   => \$fn_match  # select filename is dir
+ , 'from-code=s'       => \$char_in
+ , 'help|h'            => \$help
+ , 'language|L=s'      => \$lang
+ , 'mode=s'            => \$mode
+ , 'output-dir|p=s'    => \$output
+ , 'template|t=s'      => \$template  # pattern in ::Template
+ , 'to-code=s'         => \$char_out  # missing in xgettext?
+ , 'verbose=i'         => \$mode
+ , 'version|V'         => \$version
+ , 'v+'                => \$mode
+   or exit(1);
+
+if($version)
+{   print "Log::Report $Log::Report::VERSION\n";
+    exit 0;
+}
+
+if($help)
+{   print <<__HELP;
+Log::Report's version of xgettext, has a subset of options
+of GNU's version, and no own manual-page yet.
+__HELP
+   exit 0;
+}
+
+# Load domain information, for instance defining context_rules.  The
+# definitions are global, so automatically find their way in the Log::Report
+# internals.
+#    --config domain1=filename domain2=filename
+#    --config domain1=filename --config domain2=filename
+
+while(my ($domain, $fn) = each %configs)
+{   trace "configuring domain $domain from $fn";
+    textdomain $domain, config => $fn;
+}
+
+# all output to stderr
+dispatcher FILE => stderr => to => \*STDERR
+  , mode => $mode, format => sub {shift};
+dispatcher close => 'default';
+
+$template || $lang eq 'perl'
+    or mistake __x"programming language {lang} not supported", lang => $lang;
+
+defined $output
+    or mistake __"explicit output directory (-p) required";
+
+-d $output or mkdir $output
+    or fault __x"cannot create output directory {dir}", dir => $output;
+
+my @filenames;
+if(defined $from)
+{   !@ARGV
+        or error __x"do not combine command-line filenames with --files-from";
+
+    if($from eq '-')
+    {   @filenames = <STDIN>;
+    }
+    else
+    {   open FILENAMES, '<:raw', $from
+            or fault __x"cannot read filename list from {fn}", fn => $from;
+
+        @filenames = <FILENAMES>;
+        close FILENAMES;
+    }
+    chomp(@filenames);
+}
+elsif(@ARGV)
+{   find sub{push @filenames, $File::Find::name if -f}, @ARGV;
+}
+
+my $extr;
+my %processed;
+
+if($template)
+{   # process from template
+    eval "require Log::Report::Extract::Template";
+    panic $@ if $@;
+
+    $default_domain
+        or error __x"specify a text-domain (-d) for the templates";
+
+    $extr = Log::Report::Extract::Template->new
+      ( lexicon => $output
+      , charset => $char_out
+      , domain  => $default_domain
+      , pattern => $template
+      );
+
+    $fn_match ||= qr/\.tt2?$/i;
+
+    foreach my $filename (@filenames)
+    {   unless($filename =~ $fn_match)
+        {   info __x"skipping (not a template) {fn}", fn => $filename;
+            next;
+        }
+        $extr->process($filename, charset => $char_in);
+        $processed{$filename}++;
+    }
+}
+else
+{   # process the pm files
+    eval "require Log::Report::Extract::PerlPPI";
+    panic $@ if $@;
+
+    $extr = Log::Report::Extract::PerlPPI->new
+      ( lexicon => $output
+      , charset => $char_out
+      );
+
+    $fn_match ||= qr/\.p[lm]$/i;
+    foreach my $filename (@filenames)
+    {   unless($filename =~ $fn_match)
+        {   info __x"skipping (not perl) {fn}", fn => $filename;
+            next;
+        }
+        $extr->process($filename, charset => $char_in);
+        $processed{$filename}++;
+    }
+}
+
+$extr->cleanup(keep => \%processed);
+$extr->showStats;
+$extr->write;
