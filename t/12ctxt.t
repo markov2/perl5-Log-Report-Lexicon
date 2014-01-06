@@ -4,7 +4,7 @@
 use warnings;
 use strict;
 
-use Test::More tests => 15;
+use Test::More;
 
 use Log::Report '12test';
 
@@ -12,11 +12,21 @@ use File::Spec::Functions qw/catdir/;
 use File::Basename        qw/dirname/;
 use POSIX                 qw/:locale_h/;
 
-use_ok('Log::Report::Translator::POT');
-
 # The test file was produced by the t/11 script, and then filled in by hand
 
-setlocale LC_ALL, 'en';
+my $got_locale;
+foreach my $try_locale ('en', 'en_US.UTF-8') {
+    $got_locale = setlocale LC_ALL, $try_locale;
+    last if defined $got_locale && $got_locale eq $try_locale;
+}
+if (!$got_locale) {
+    plan skip_all => "Cannot set an English locale";
+    exit 0;
+}
+
+plan tests => 15;
+
+use_ok('Log::Report::Translator::POT');
 
 my $rules =
   { gender => [ 'male', 'female' ]

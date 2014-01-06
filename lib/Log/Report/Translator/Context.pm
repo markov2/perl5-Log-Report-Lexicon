@@ -77,7 +77,7 @@ for a certain textdomain.
 sub _strip_tags($)
 {   my $msgid = shift;
     my @tags;
-    while($msgid =~ s/\{ ([^}]*) \<(\w+) ([^}]*)\}/
+    while($msgid =~ s/\{ ([^}]*) \<(\w+) ([^}]*) \}/
                       length "$1$3" ? "{$1$3}" : ''/xe)
     {  push @tags, $2;
     }
@@ -185,7 +185,7 @@ sub _context_table($)
     my %rules;
     foreach my $tag (keys %$rules)
     {   my $d = $rules->{$tag};
-        $d = { alternatives => $d } if ref $d eq 'ARRAY';
+        $d = +{ alternatives => $d } if ref $d eq 'ARRAY';
         my %simple;
         my $default  = $d->{default} || {};           # default map
         if(my $alt   = $d->{alternatives})            # simpelest map

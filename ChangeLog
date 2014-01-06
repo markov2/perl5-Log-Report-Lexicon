@@ -15,6 +15,11 @@ wishlist:
 	- plugin for Dancer
 	- convert TT usage example into a real TT plugin.
 
+version 1.01: Mon Jan  6 22:42:22 CET 2014
+	Fixes:
+	- t/12ctxt.t failed when 'en' locale was not installed.  Patched
+	  by [Slaven Rezic]
+
 version 1.00: Sun Jan  5 17:30:43 CET 2014
 	Split-off from Log::Report
 
