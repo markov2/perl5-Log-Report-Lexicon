@@ -49,7 +49,7 @@ The run-time component of translations.
 
 =section Constructors
 
-=c_method new OPTIONS
+=c_method new %options
 =cut
 
 sub new(@)

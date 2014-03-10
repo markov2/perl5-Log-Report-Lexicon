@@ -46,11 +46,11 @@ created.
 
 =section Constructors
 
-=c_method new DIRECTORY, OPTIONS
+=c_method new $directory, %options
 Create an index for a certain directory.  If the directory does not
 exist or is empty, then the object will still be created.
 
-All files the DIRECTORY tree which are recognized as an translation table
+All files the $directory tree which are recognized as an translation table
 format which is understood will be listed.  Momentarily, those are:
 
 =over
@@ -108,10 +108,10 @@ sub index()
     $self->{index};
 }
 
-=method addFile BASENAME, [ABSOLUTE]
-Add a certain file to the index.  This method returns the ABSOLUTE
+=method addFile $basename, [$absolute]
+Add a certain file to the index.  This method returns the $absolute
 path to that file, which must be used to access it.  When not explicitly
-specified, the ABSOLUTE path will be calculated.
+specified, the $absolute path will be calculated.
 =cut
 
 sub addFile($;$)
@@ -121,12 +121,12 @@ sub addFile($;$)
     $self->{index}{lc $base} = $abs;
 }
 
-=method find TEXTDOMAIN, LOCALE
+=method find $textdomain, $locale
 Lookup the best translation table, according to the rules described
 in chapter L</DETAILS>, below.
 
 Returned is a filename, or C<undef> if nothing is defined for the
-LOCALE (there is no default on this level).
+$locale (there is no default on this level).
 =cut
 
 sub find($$)
@@ -175,12 +175,12 @@ sub find($$)
     || _find($index, "$domain/$lang");
 }
 
-=method list DOMAIN, [EXTENSION]
+=method list $domain, [$extension]
 Returned is a list of filenames which is used to update the list of
 MSGIDs when source files have changed.  All translation files which
-belong to a certain DOMAIN are listed.
+belong to a certain $domain are listed.
 
-The EXTENSION filter can be used to reduce the filenames further, for
+The $extension filter can be used to reduce the filenames further, for
 instance to select only C<po> or only C<mo> files, and ignore readme's.
 Use an string, without dot and interpreted case-insensitive, or a
 regular expression.

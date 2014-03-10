@@ -105,8 +105,8 @@ values of C<$format>.
 
 =section Processors
 
-=method process FILENAME, OPTIONS
-Update the domains mentioned in the FILENAME.  All textdomains defined
+=method process $filename, %options
+Update the domains mentioned in the $filename.  All textdomains defined
 in the file will get updated automatically, but not written before
 all files where processed.
 

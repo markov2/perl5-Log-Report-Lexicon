@@ -48,7 +48,7 @@ than M<Log::Report::Lexicon::PO>.
 
 =section Constructors
 
-=c_method new OPTIONS
+=c_method new %options
 =cut
 
 sub translate($;$$)

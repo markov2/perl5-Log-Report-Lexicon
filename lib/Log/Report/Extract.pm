@@ -24,7 +24,7 @@ translations exist yet, one C<textdomain/xx.po> file will be created.
 
 =section Constructors
 
-=c_method new OPTIONS
+=c_method new %options
 
 =requires lexicon DIRECTORY
 The place where the lexicon is kept.  When no lexicon is defined yet,
@@ -72,9 +72,9 @@ sub index()   {shift->{LRE_index}}
 sub charset() {shift->{LRE_charset}}
 sub domains() {sort keys %{shift->{LRE_domains}}}
 
-=method pots DOMAIN
+=method pots $domain
 Returns the list of M<Log::Report::Lexicon::POT> objects which contain
-the tables for DOMAIN.
+the tables for $domain.
 =cut
 
 sub pots($)
@@ -85,8 +85,8 @@ sub pots($)
 
 =section Processors
 
-=method process FILENAME, OPTIONS
-Update the domains mentioned in the FILENAME.  All text-domains defined
+=method process $filename, %options
+Update the domains mentioned in the $filename.  All text-domains defined
 in the file will get updated automatically, but should not written before
 all files are processed.
 
@@ -98,7 +98,7 @@ sub process($@)
     panic "not implemented";
 }
 
-=method cleanup OPTIONS
+=method cleanup %options
 Remove all references.
 
 =option keep HASH|ARRAY
@@ -118,7 +118,7 @@ sub cleanup(%)
     }
 }
 
-=method showStats [DOMAINs]
+=method showStats [$domains]
 Show a status about the DOMAIN (by default all domains).  At least mode
 verbose is required to see this.
 
@@ -173,11 +173,11 @@ sub showStats(;$)
     }
 }
 
-=method write [DOMAIN]
-Update the information of the files related to DOMAIN, by default all
+=method write [$domain]
+Update the information of the files related to $domain, by default all
 processed DOMAINS.
 
-All information known about the written DOMAIN is removed from the cache.
+All information known about the written $domain is removed from the cache.
 =cut
 
 sub write(;$)
@@ -240,9 +240,9 @@ sub _read_pots($)
     [ $pot ];
 }
 
-=method store DOMAIN, FILENAME, LINENR, CONTEXT, MSG, [MSG_PLURAL]
-Register the existence of a (MSG, MSG_PLURAL) in all POTs of
-the DOMAIN.
+=method store $domain, $filename, $linenr, $context, $msg, [$msg_plural]
+Register the existence of a ($msg, $msg_plural) in all POTs of
+the $domain.
 =cut
 
 sub store($$$$;$)

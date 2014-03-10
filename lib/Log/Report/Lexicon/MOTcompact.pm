@@ -42,8 +42,8 @@ is part of the gnu gettext package.
 
 =section Constructors
 
-=c_method read FILENAME, OPTIONS
-Read the MOT table information from FILENAME.
+=c_method read $filename, %options
+Read the MOT table information from $filename.
 
 =requires charset STRING
 The character-set which is used for the file.  You must specify
@@ -195,7 +195,7 @@ sub filename()  {shift->{filename}}
 
 =section Managing PO's
 
-=method msgid STRING, [MSGCTXT]
+=method msgid STRING, [$msgctxt]
 Lookup the translations with the STRING.  Returns a SCALAR, when only
 one translation is known, and an ARRAY when we have plural forms.
 Returns C<undef> when the translation is not defined.
@@ -223,8 +223,8 @@ sub msgid($;$)
     $self->{index}{$tag} = @msgstr > 1 ? \@msgstr : $msgstr[0]; 
 }
 
-=method msgstr MSGID, [COUNT, MSGCTXT]
-Returns the translated string for MSGID.  When not specified, COUNT is 1
+=method msgstr $msgid, [$count, $msgctxt]
+Returns the translated string for $msgid.  When not specified, $count is 1
 (the singular form).
 =cut
 

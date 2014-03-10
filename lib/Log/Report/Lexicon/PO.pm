@@ -23,7 +23,7 @@ records are kept in a POT file, implemented in M<Log::Report::Lexicon::POT>.
 
 =section Constructors
 
-=c_method new OPTIONS
+=c_method new %options
 
 =requires msgid STRING
 
@@ -61,9 +61,10 @@ LOCATIONs are of the  form C<filename:linenumber>, for
 instance C<lib/Foo.pm:42>
 See M<addReferences()>
 
-=option   format ARRAY-OF-PAIRS|HASH
+=option   format ARRAY|HASH
 =default  format C<[]>
-See M<format()>.
+See M<format()>.  Either an ARRAY with PAIRS or a HASH with that same
+information.
 =cut
 
 sub new(@)
@@ -123,9 +124,9 @@ sub plural(;$)
     $self->{plural} = shift;
 }
 
-=method msgstr [INDEX, [STRING]]
+=method msgstr [$index, [STRING]]
 With a STRING, a new translation will be set.  Without STRING, a
-lookup will take place.  When no plural is defined, the INDEX is
+lookup will take place.  When no plural is defined, the $index is
 ignored.
 =cut
 
@@ -239,8 +240,8 @@ sub addReferences(@)
     $refs;
 }
 
-=method removeReferencesTo FILENAME
-Remove all the references to the indicate FILENAME from the list.  Returns
+=method removeReferencesTo $filename
+Remove all the references to the indicate $filename from the list.  Returns
 the number of refs left.
 =cut
 
@@ -253,8 +254,8 @@ sub removeReferencesTo($)
     scalar keys %$refs;
 }
 
-=method keepReferencesTo TABLE
-Remove all references which are not found as key in the hash TABLE.
+=method keepReferencesTo $table
+Remove all references which are not found as key in the hash $table.
 Returns the number of references left.
 =cut
 
@@ -282,9 +283,9 @@ Returns whether the translation needs human inspection.
 
 sub fuzzy(;$) {my $self = shift; @_ ? $self->{fuzzy} = shift : $self->{fuzzy}}
 
-=method format LANGUAGE|PAIRS|ARRAY-OF-PAIRS|HASH
-When one LANGUAGE is specified, it looks whether a C<LANGUAGE-format> or
-C<no-LANGUAGE-format> is present in the line of FLAGS.  This will return
+=method format $language | <PAIRS|ARRAY|HASH>
+When one $language is specified, it looks whether a C<$language-format> or
+C<no-$language-format> is present in the line of FLAGS.  This will return
 C<1> (true) in the first case, C<0> (false) in the second case.  It will
 return C<undef> (also false) in case that both are not present.
 
@@ -292,10 +293,12 @@ You can also specify PAIRS: the key is a language name, and the
 value is either C<0>, C<1>, or C<undef>.
 
 =examples use of format()
+ # getters
  if($po->format('c')) ...
  unless($po->format('perl-brace')) ...
  if(defined $po->format('java')) ...
 
+ # setters
  $po->format(java => 1);       # results in 'java-format'
  $po->format(java => 0);       # results in 'no-java-format'
  $po->format(java => undef);   # results in ''
@@ -337,8 +340,8 @@ sub addFlags($)
 }
 =section Parsing
 
-=c_method fromText STRING, [WHERE]
-Parse the STRING into a new PO object.  The WHERE string should explain
+=c_method fromText STRING, [$where]
+Parse the STRING into a new PO object.  The $where string should explain
 the location of the STRING, to be used in error messages.
 =cut
 
@@ -416,7 +419,7 @@ sub fromText($$)
     $self;
 }
 
-=method toString OPTIONS
+=method toString %options
 Format the object into a multi-lined string.
 
 =option  nr_plurals INTEGER
@@ -500,13 +503,14 @@ sub toString(@)
     join '', @record;
 }
 
-=method unused
-The message-id has no references anymore and no translations.
+=method useless
+[1.02] The message-id has no references anymore B<and> no translations.
 =cut
 
-sub unused()
+sub useless()
 {   my $self = shift;
     ! $self->references && ! $self->msgstr(0);
 }
+*unused = \&useless; # before <1.02
 
 1;

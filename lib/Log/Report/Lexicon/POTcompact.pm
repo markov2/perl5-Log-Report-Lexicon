@@ -38,8 +38,8 @@ M<Log::Report::Lexicon::POT>.
 
 =section Constructors
 
-=c_method read FILENAME, OPTIONS
-Read the POT table information from FILENAME, as compact as possible.
+=c_method read $filename, %options
+Read the POT table information from $filename, as compact as possible.
 Comments, plural-form, and such are lost on purpose: they are not
 needed for translations.
 
@@ -125,7 +125,7 @@ sub index()     {shift->{index}}
 # The index is a HASH with "$msg#$msgctxt" keys.  If there is no
 # $msgctxt, then there still is the #
 
-=method msgid STRING, [MSGCTXT]
+=method msgid STRING, [$msgctxt]
 Lookup the translations with the STRING.  Returns a SCALAR, when only
 one translation is known, and an ARRAY wherein there are multiple.
 Returns C<undef> when the translation is not defined.
@@ -133,8 +133,8 @@ Returns C<undef> when the translation is not defined.
 
 sub msgid($) { $_[0]->{index}{$_[1].'#'.($_[2]//'')} }
 
-=method msgstr MSGID, [COUNT, [MSGCTXT]
-Returns the translated string for MSGID.  When not specified, COUNT is 1
+=method msgstr $msgid, [$count, [$msgctxt]
+Returns the translated string for $msgid.  When not specified, $count is 1
 (the single form).
 =cut
 

@@ -43,7 +43,7 @@ super efficient.
 
 =section Constructors
 
-=c_method new OPTIONS
+=c_method new %options
 =cut
 
 sub new(@)  { my $class = shift; (bless {}, $class)->init({@_}) }
@@ -58,12 +58,12 @@ sub init($) {shift}
 
 =subsection Translation
 
-=method msgid STRING, [MSGCTXT]
+=method msgid STRING, [$msgctxt]
 Lookup the M<Log::Report::Lexicon::PO> with the STRING.
 Returns C<undef> when not defined.
 
-=method msgstr MSGID, [COUNT, MSGCTXT]
-Returns the translated string for MSGID.  When not specified, COUNT is 1.
+=method msgstr $msgid, [$count, $msgctxt]
+Returns the translated string for $msgid.  When not specified, $count is 1.
 =cut
 
 sub msgid($;$)   {panic "not implemented"}
@@ -72,16 +72,16 @@ sub msgstr($;$$) {panic "not implemented"}
 #------------------
 =subsection Administration
 
-=method add PO
-Add the information from a PO into this POT.  If the msgid of the PO
+=method add $po
+Add the information from a $po into this POT.  If the msgid of the $po
 is already known, that is an error.
 =cut
 
 sub add($)      {panic "not implemented"}
 
-=method translations [ACTIVE]
+=method translations [$active]
 Returns a list with all defined M<Log::Report::Lexicon::PO> objects. When
-the string C<ACTIVE> is given as parameter, only objects which have
+the string C<$active> is given as parameter, only objects which have
 references are returned.
 
 =error only acceptable parameter is 'ACTIVE'
@@ -89,8 +89,8 @@ references are returned.
 
 sub translations(;$) {panic "not implemented"}
 
-=method pluralIndex COUNT
-Returns the msgstr index used to translate a value of COUNT.
+=method pluralIndex $count
+Returns the msgstr index used to translate a value of $count.
 =cut
 
 sub pluralIndex($)
@@ -126,9 +126,9 @@ Returns the number of plurals, when not known then '2'.
 
 sub nrPlurals() {shift->{nplurals}}
 
-=method header FIELD
+=method header $field
 The translation of a blank MSGID is used to store a MIME header, which
-contains some meta-data.  The FIELD value is looked-up (case-insensitive)
+contains some meta-data.  The $field value is looked-up (case-insensitive)
 and returned.
 =cut
 

@@ -6,7 +6,7 @@ use strict;
 
 use Test::More;
 
-use Log::Report '12test';
+use Log::Report '12test', mode => 3;
 
 use File::Spec::Functions qw/catdir/;
 use File::Basename        qw/dirname/;
@@ -14,27 +14,26 @@ use POSIX                 qw/:locale_h/;
 
 # The test file was produced by the t/11 script, and then filled in by hand
 
-my $got_locale;
-foreach my $try_locale ('en', 'en_US.UTF-8') {
-    $got_locale = setlocale LC_ALL, $try_locale;
-    last if defined $got_locale && $got_locale eq $try_locale;
-}
-if (!$got_locale) {
-    plan skip_all => "Cannot set an English locale";
+if($^O eq 'openbsd')
+{   plan skip_all => "openbsd does not support LC_ALL";
     exit 0;
 }
+
+my $got_locale = setlocale LC_ALL, 'en_US.UTF-8';
+$got_locale && $got_locale eq 'en_US.UTF-8'
+    or plan skip_all => "cannot set an en_US.UTF-8 locale";
 
 plan tests => 15;
 
 use_ok('Log::Report::Translator::POT');
 
 my $rules =
-  { gender => [ 'male', 'female' ]
-  , style  => [ 'informal', 'formal' ]
+  { gender  => [ 'male', 'female' ]
+  , style   => [ 'informal', 'formal' ]
   };
 
 my $translator = Log::Report::Translator::POT->new
-  ( lexicon       => (dirname __FILE__)
+  ( lexicon => (dirname __FILE__)
   );
 
 my $domain = textdomain '12test'
@@ -43,7 +42,7 @@ my $domain = textdomain '12test'
 
 isa_ok $domain, 'Log::Report::Domain', 'recreated';
 
-$domain->setContext('gender=male style=informal');
+$domain->setContext('gender=male, style=informal');
 
 #
 # Simpelest, no context

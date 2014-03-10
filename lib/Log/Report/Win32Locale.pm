@@ -51,8 +51,8 @@ The algorithms in this module are based on Win32::Locale and Win32::Codepage.
 
 =chapter FUNCTIONS
 
-=function codepage_to_iso CODEPAGE
-Translate windows CODEPAGE into ISO code.  The CODEPAGE is numeric
+=function codepage_to_iso $codepage
+Translate windows $codepage into ISO code.  The $codepage is numeric
 or a hex string like '0x0304'.
 =cut
 
@@ -61,8 +61,8 @@ sub codepage_to_iso($)
     defined $cp ? $codepage2iso{$cp =~ m/^0x/i ? hex($cp) : $cp} : ();
 }
  
-=function iso_to_codepage ISO
-Returns the numeric value of the codepage.  The ISO may look like
+=function iso_to_codepage $iso
+Returns the numeric value of the codepage.  The $iso may look like
 this: C<xx_YY>.  Then, first the C<xx_YY> is looked-up.  If that does
 not exist, C<xx> is tried.
 =cut
@@ -76,7 +76,7 @@ sub iso_to_codepage($)
     $iso2codepage{$lang};
 }
 
-=function iso_locale [CODEPAGE]
+=function iso_locale [$codepage]
 Returns the ISO string for the Microsoft codepage locale.  Might return
 C<undef>/false.  By default, the actual codepage is used.
 =cut

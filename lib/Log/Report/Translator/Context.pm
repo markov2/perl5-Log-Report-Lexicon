@@ -39,7 +39,7 @@ the gender is set as context keyword in the message:
 
 =section Constructors
 
-=c_method new OPTIONS
+=c_method new %options
 
 =option  rules HASH
 =default rules {}
@@ -64,10 +64,10 @@ sub rules() {shift->{LRTC_rules}}
 #-------
 =section Action
 
-=method ctxtFor MESSAGE, LANG, [CONTEXT]
+=method ctxtFor $message, $lang, [$context]
 Returns a pair of the MSGID stripped from context markup, and the
-context evaluated into the msgctxt string.  The MESSAGE is a
-M<Log::Report::Message> object.  The CONTEXT is the default context
+context evaluated into the msgctxt string.  The $message is a
+M<Log::Report::Message> object.  The $context is the default context
 for a certain textdomain.
 
   my ($msgid, $msgctxt) = $context->ctxtFor($msg, $lang, $context);
@@ -96,7 +96,7 @@ sub ctxtFor($$;$)
     my $msg_context = $self->needDecode($rawid, $msg->context || {});
     $def_context  ||= {};
 #use Data::Dumper;
-#warn "CONTEXT = ", Dumper $msg, $msg_context, $def_context;
+#warn "$context = ", Dumper $msg, $msg_context, $def_context;
 
     my @c;
     foreach my $tag (@$tags)
@@ -125,7 +125,7 @@ sub ctxtFor($$;$)
     ($msgid, $msgctxt);
 }
 
-=ci_method needDecode SOURCE, STRING|ARRAY|HASH|LIST
+=ci_method needDecode $source, STRING|ARRAY|HASH|LIST
 Converts the context settings passed with the MSGID, into a HASH which will
 be matched to the context providers.
 =cut
@@ -147,10 +147,10 @@ sub needDecode($@)
     \%c;
 }
 
-=method expand MSGID, LANGUAGE, OPTIONS
+=method expand $msgid, $language, %options
 Expand the context settings into all possible combinations which need
-translations in the PO file.  This may depend on the LANGUAGE.
-The MSGID is used in error messages.
+translations in the PO file.  This may depend on the $language.
+The $msgid is used in error messages.
 =cut
 
 sub expand($$@)

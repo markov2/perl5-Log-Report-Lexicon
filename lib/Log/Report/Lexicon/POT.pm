@@ -55,7 +55,7 @@ M<Log::Report::Lexicon::PO>.
 
 =section Constructors
 
-=c_method new OPTIONS
+=c_method new %options
 Create a new POT file.  The initial header is generated for you, but
 it can be changed using the M<header()> method.
 
@@ -132,8 +132,8 @@ sub init($)
     $self;
 }
 
-=c_method read FILENAME, OPTIONS
-Read the POT information from FILENAME.
+=c_method read $filename, %options
+Read the POT information from $filename.
 
 =requires charset STRING
 The character-set which is used for the file.  You must specify
@@ -176,11 +176,17 @@ sub read($@)
     $self;
 }
 
-=method write [FILENAME|FILEHANDLE], OPTIONS
-When you pass an open FILEHANDLE, you are yourself responsible that
+=method write [$filename|$fh], %options
+When you pass an open $fh, you are yourself responsible that
 the correct character-encoding (binmode) is set.  When the write
 followed a M<read()> or the filename was explicitly set with M<filename()>,
 then you may omit the first parameter.
+
+=option  only_active BOOLEAN
+=default only_active C<false>
+[1.02] Do not write records which do have a translation, but where the
+msgid has disappeared from the sources.  By default, these records are
+commented out (marked with '#~') but left in the file.
 
 =error no filename or file-handle specified for PO
 When a PO file is written, then a filename or file-handle must be
@@ -192,12 +198,12 @@ sub write($@)
 {   my $self = shift;
     my $file = @_%2 ? shift : $self->filename;
     my %args = @_;
-    my $act  = $args{only_active} ? 'ACTIVE' : undef;
 
     defined $file
         or error __"no filename or file-handle specified for PO";
 
-    my @opt  = (nplurals => $self->nrPlurals);
+    my $need_refs = $args{only_active};
+    my @opt       = (nr_plurals => $self->nrPlurals);
 
     my $fh;
     if(ref $file) { $fh = $file }
@@ -213,15 +219,14 @@ sub write($@)
     foreach my $msgid (sort keys %$index)
     {   next if $msgid eq MSGID_HEADER;
 
-        my $po = $index->{$msgid};
-        if(blessed $po)
-        {   $fh->print("\n", $po->toString(@opt)) unless $po->unused;
-            next;
-        }
+        my $rec  = $index->{$msgid};
+        my @recs = blessed $rec ? $rec   # one record with $msgid
+          : @{$rec}{sort keys %$rec};    # multiple records, msgctxt
 
-        foreach my $c (sort keys %$po)
-        {   my $p = $po->{$c};
-            $fh->print("\n", $p->toString(@opt)) unless $p->unused;
+        foreach my $po (@recs)
+        {   next if $po->useless;
+            next if $need_refs && !$po->references;
+            $fh->print("\n", $po->toString(@opt));
         }
     }
 
@@ -244,7 +249,7 @@ to avoid using this: use M<msgid()> for lookup and M<add()> for adding
 translations.
 
 =method filename
-Returns the FILENAME, as derived from M<read()> or specified during
+Returns the $filename, as derived from M<read()> or specified during
 initiation with M<new(filename)>.
 =cut
 
@@ -261,7 +266,7 @@ sub language() { shift->filename =~ m![/\\](\w+)[^/\\]*$! ? $1 : undef }
 #-----------------------
 =section Managing PO's
 
-=method msgid STRING, [MSGCTXT]
+=method msgid STRING, [$msgctxt]
 Lookup the M<Log::Report::Lexicon::PO> with the STRING.  If you
 want to add a new translation, use M<add()>.  Returns C<undef>
 when not defined.
@@ -278,8 +283,8 @@ sub msgid($;$)
     $msgs->{$msgctxt};
 }
 
-=method msgstr MSGID, [COUNT, [MSGCTXT]]
-Returns the translated string for MSGID.  When COUNT is not specified or
+=method msgstr $msgid, [$count, [$msgctxt]]
+Returns the translated string for $msgid.  When $count is not specified or
 C<undef>, the translation string related to "1" is returned.
 =cut
 
@@ -292,8 +297,8 @@ sub msgstr($;$$)
     $po->msgstr($self->pluralIndex($count));
 }
 
-=method add PO
-Add the information from a PO into this POT.  If the msgid of the PO
+=method add $po
+Add the information from a $po into this POT.  If the msgid of the $po
 is already known, that is an error.
 =cut
 
@@ -316,9 +321,9 @@ sub add($)
     $h->{$ctxt} = $po;
 }
 
-=method translations [ACTIVE]
+=method translations [$active]
 Returns a list with all defined M<Log::Report::Lexicon::PO> objects. When
-the string C<ACTIVE> is given as parameter, only objects which have
+the string C<$active> is given as parameter, only objects which have
 references are returned.
 
 =error only acceptable parameter is 'ACTIVE'
@@ -335,12 +340,12 @@ sub translations(;$)
     grep $_->isActive, $self->translations;
 }
 
-=method header [FIELD, [CONTENT]]
+=method header [$field, [$content]]
 The translation of a blank MSGID is used to store a MIME header, which
-contains some meta-data.  When only a FIELD is specified, that content is
-looked-up (case-insensitive) and returned.  When a CONTENT is specified,
+contains some meta-data.  When only a $field is specified, that content is
+looked-up (case-insensitive) and returned.  When a $content is specified,
 the knowledge will be stored.  In latter case, the header structure
-may get created.  When the CONTENT is set to C<undef>, the field will
+may get created.  When the $content is set to C<undef>, the field will
 be removed.
 
 =cut
@@ -375,8 +380,8 @@ sub header($;$)
     $content;
 }
 
-=method updated [DATE]
-Replace the "PO-Revision-Date" with the specified DATE, or the current
+=method updated [$date]
+Replace the "PO-Revision-Date" with the specified $date, or the current
 moment.
 =cut
 
@@ -415,8 +420,8 @@ __CONFIG
     $header;
 }
 
-=method removeReferencesTo FILENAME
-Remove all the references to the indicate FILENAME from all defined
+=method removeReferencesTo $filename
+Remove all the references to the indicate $filename from all defined
 translations.  Returns the number of refs left.
 =cut
 
@@ -425,8 +430,8 @@ sub removeReferencesTo($)
     sum map $_->removeReferencesTo($filename), $self->translations;
 }
 
-=method keepReferencesTo TABLE
-Remove all references which are not found as key in the hash TABLE.
+=method keepReferencesTo $table
+Remove all references which are not found as key in the hash $table.
 Returns the number of references left.
 =cut
 
@@ -446,7 +451,7 @@ sub stats()
     {   next if $po->msgid eq MSGID_HEADER;
         $stats{msgids}++;
         $stats{fuzzy}++    if $po->fuzzy;
-        $stats{inactive}++ if !$po->isActive && !$po->unused;
+        $stats{inactive}++ if !$po->isActive && !$po->useless;
     }
     \%stats;
 }
