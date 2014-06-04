@@ -56,7 +56,7 @@ sub read($@)
     my $charset = $args{charset}
         or error __x"charset parameter required for {fn}", fn => $fn;
 
-    open my $fh, "<:encoding($charset)", $fn
+    open my $fh, "<:encoding($charset):crlf", $fn
         or fault __x"cannot read in {cs} from file {fn}"
              , cs => $charset, fn => $fn;
 

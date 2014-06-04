@@ -252,32 +252,36 @@ sub store($$$$;$)
     my $context    = $textdomain->contextRules;
 
     foreach my $pot ($self->pots($domain))
-    {   my $msgctxts;
+    {   my ($stripped, $msgctxts);
         if($context)
         {   my $lang = $pot->language || 'en';
-            ($msgid, $msgctxts) = $context->expand($msgid, $lang);
+            ($stripped, $msgctxts) = $context->expand($msgid, $lang);
 
             if($plural && $plural =~ m/\{[^}]*\<\w+/)
             {   error __x"no context tags allowed in plural `{msgid}'"
                   , msgid => $plural;
             }
         }
+        else
+        {   $stripped = $msgid;
+        }
+
         $msgctxts && @$msgctxts
             or $msgctxts = [undef];
 
     MSGCTXT:
         foreach my $msgctxt (@$msgctxts)
         {
-#warn "($msgid, $msgctxt)";
-            if(my $po = $pot->msgid($msgid, $msgctxt))
+#warn "($stripped, $msgctxt)";
+            if(my $po = $pot->msgid($stripped, $msgctxt))
             {   $po->addReferences( ["$fn:$linenr"]);
                 $po->plural($plural) if $plural;
                 next MSGCTXT;
             }
 
-            my $format = $msgid =~ m/\{/ ? 'perl-brace' : 'perl';
+            my $format = $stripped =~ m/\{/ ? 'perl-brace' : 'perl';
             my $po = Log::Report::Lexicon::PO->new
-              ( msgid        => $msgid
+              ( msgid        => $stripped
               , msgid_plural => $plural
               , msgctxt      => $msgctxt
               , fuzzy        => 1
