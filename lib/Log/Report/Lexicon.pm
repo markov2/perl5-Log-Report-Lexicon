@@ -17,7 +17,7 @@ of M<Log::Report> which handle translations.
 
 If you do not need translations, you do not need to install this module.
 When you use M<Log::Report> and need to add translations, it may be
-very little work: when you nicely wrote texts in the adviced message
+very little work: when you nicely wrote texts in the advised message
 format like
 
    print __x"Greetings to you, {name}", name => $name;

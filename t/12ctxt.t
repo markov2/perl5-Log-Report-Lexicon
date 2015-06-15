@@ -6,7 +6,7 @@ use strict;
 
 use Test::More;
 
-use Log::Report '12test', mode => 3;
+use Log::Report '12test';
 
 use File::Spec::Functions qw/catdir/;
 use File::Basename        qw/dirname/;

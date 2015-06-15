@@ -53,7 +53,7 @@ my $new = textdomain 'my-domain'
 isa_ok $new, 'Log::Report::Domain', 'recreated';
 cmp_ok $old, '!=', $new, 'new is really new';
 
-$new->setContext('gender=male');
+$new->setContext('gender=male,formal=informal');
 
 my $a1 = __x"{name<gender} forgot his key", name => 'Mark';
 is $a1, 'Mark forgot his key', 'Mark';

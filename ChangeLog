@@ -12,8 +12,13 @@ bugs:
 
 wishlist:
 	- let xgettext-perl produce mo files as well.
-	- plugin for Dancer
 	- convert TT usage example into a real TT plugin.
+
+version 1.04: Mon Jun 15 17:34:38 CEST 2015
+
+	Improvements:
+	- spell-fix rt.cpan.org#96465 [Gregor Herrmann, Debian]
+	- add Log::Report::Extract::addPot()
 
 version 1.03: Wed Jun  4 17:22:19 CEST 2014
 

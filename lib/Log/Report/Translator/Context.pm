@@ -329,7 +329,7 @@ The gnutext implementation of the context is very simple.  This is to
 be expected from a library written in C.  The msgctxt alternatives
 are matched against the context keywords of the message.  In all or
 none of the alternatives match, then just a random translation is
-choosen.
+chosen.
 
 In the simplest form, the msgctxt field contains a single keyword
 (not containing a comma).

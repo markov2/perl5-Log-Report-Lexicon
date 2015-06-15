@@ -210,7 +210,7 @@ sub write($@)
     else
     {    my $layers = '>:encoding('.$self->charset.')';
          open $fh, $layers, $file
-             or fault __x"cannot write to file {fn} in {layers}"
+             or fault __x"cannot write to file {fn} with {layers}"
                     , fn => $file, layers => $layers;
     }
 

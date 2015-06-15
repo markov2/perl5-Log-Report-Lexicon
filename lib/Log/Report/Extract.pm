@@ -55,6 +55,7 @@ sub init($)
     $self;
 }
 
+#---------------
 =section Accessors
 
 =method index
@@ -83,6 +84,16 @@ sub pots($)
     $r ? @$r : ();
 }
 
+=method addPot $domain, $pot, %options
+=cut
+
+sub addPot($$%)
+{   my ($self, $domain, $pot) = @_;
+    push @{$self->{LRE_domains}{$domain}}, ref $pot eq 'ARRAY' ? @$pot : $pot
+        if $pot;
+}
+
+#---------------
 =section Processors
 
 =method process $filename, %options
@@ -131,11 +142,11 @@ the 'mode':
 =cut
 
 sub showStats(;$)
-{   dispatcher needs => 'INFO'
-        or return;
-
-    my $self = shift;
+{   my $self    = shift;
     my @domains = @_ ? @_ : $self->domains;
+
+    dispatcher needs => 'INFO'
+        or return;
 
     foreach my $domain (@domains)
     {   my $pots = $self->{LRE_domains}{$domain} or next;
@@ -215,7 +226,7 @@ sub _read_pots($)
     my $index   = $self->index;
     my $charset = $self->charset;
 
-    my @pots = map Log::Report::Lexicon::POT->read($_, charset=> $charset),
+    my @pots    = map Log::Report::Lexicon::POT->read($_, charset=> $charset),
         $index->list($domain);
 
     trace __xn "found one pot file for domain {domain}"
