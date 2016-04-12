@@ -6,6 +6,7 @@ use base 'Log::Report::Lexicon::Table';
 
 use Log::Report        'log-report-lexicon';
 use Fcntl              'SEEK_SET';
+use Encode             'decode';
 
 use constant MAGIC_NUMBER => 0x95_04_12_DE;
 
@@ -153,12 +154,16 @@ sub read($@)
 
     while(@origs)
     {   my ($id_len, $id_loc) = (shift @origs, shift @origs);
-        my $msgid   = substr $orig_block, $id_loc-$orig_start, $id_len;
-        my $msgctxt = $msgid =~ s/(.*)\x04// ? $1 : '';
+        my $msgid_b   = substr $orig_block, $id_loc-$orig_start, $id_len;
+        my $msgctxt_b = $msgid_b =~ s/(.*)\x04// ? $1 : '';
+
+        my $msgid     = decode $charset, $msgid_b;
+        my $msgctxt   = decode $charset, $msgctxt_b;
+
         my ($trans_len, $trans_loc) = (shift @trans, shift @trans);
         if($take_all)
-        {   my $msgstr = substr $trans_block,$trans_loc-$trans_start,$trans_len;
-            my @msgstr = split /\0x00/, $msgstr;
+        {   my $msgstr_b = substr $trans_block, $trans_loc - $trans_start, $trans_len;
+            my @msgstr   = map decode($charset, $_), split /\0x00/, $msgstr_b;
             $index{"$msgid#$msgctxt"} = @msgstr > 1 ? \@msgstr : $msgstr[0];
         }
         else

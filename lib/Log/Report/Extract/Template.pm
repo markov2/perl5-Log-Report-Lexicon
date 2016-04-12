@@ -69,6 +69,7 @@ sub init($)
     $self;
 }
 
+#----------
 =section Accessors
 =method domain
 =method pattern
@@ -77,6 +78,7 @@ sub init($)
 sub domain()  {shift->{LRET_domain}}
 sub pattern() {shift->{LRET_pattern}}
 
+#----------
 =section Processors
 
 =method process $filename, %options

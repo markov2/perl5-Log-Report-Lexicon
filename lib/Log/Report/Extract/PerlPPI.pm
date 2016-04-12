@@ -38,6 +38,8 @@ Log::Report::Extract::PerlPPI - Collect translatable strings from Perl using PPI
  $ppi->write;
 
  # See script  xgettext-perl
+ bin/xgettext-perl -p $lexdir @source_dirs
+
 
 =chapter DESCRIPTION
 
@@ -159,7 +161,8 @@ sub process($@)
                : $dom->isa('PPI::Token::QuoteLike::Words') ? ($dom->literal)[0]
                : undef;
 
-            $self->_reset($domain, $fn);
+            $self->_reset($domain, $fn)
+                if defined $domain;
         }
 
         $node->find_any( sub {

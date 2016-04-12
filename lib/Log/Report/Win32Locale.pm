@@ -28,7 +28,7 @@ close DATA;
 =chapter NAME
 Log::Report::Win32Locale - unix/windows locales
 
-=chapter SYNOPSYS
+=chapter SYNOPSIS
   # Only usable on Windows
   print codepage_to_iso(0x0413);   # nl-NL
   print iso_to_codepage('nl_NL');  # 1043

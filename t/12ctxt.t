@@ -23,7 +23,7 @@ my $got_locale = setlocale LC_ALL, 'en_US.UTF-8';
 $got_locale && $got_locale eq 'en_US.UTF-8'
     or plan skip_all => "cannot set an en_US.UTF-8 locale";
 
-plan tests => 15;
+plan tests => 16;
 
 use_ok('Log::Report::Translator::POT');
 
@@ -105,4 +105,11 @@ is $b7, 'Dear Sir,';
 my $b8 = __xn"Dear Sir,{<gender<style}", "Dear Sirs,", 1
   , _context => 'gender=female,style=formal';
 is $b8, 'Dear Lady,';
+
+
+# Context values also available to insert
+
+my $c1 = __x"{name} is a {gender}", name => 'Piet'
+   , _context => {gender => 'male'};
+is $c1, 'Piet is a male';
 

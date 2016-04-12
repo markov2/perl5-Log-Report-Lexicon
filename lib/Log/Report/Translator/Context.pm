@@ -17,23 +17,32 @@ Log::Report::Translator::Context - handle translation contexts
 =chapter DESCRIPTION
 
 [Added in Log::Report v1.00]
-The "contexts" concept in (GNU's version of) C<gettext>, has a
+The "contexts" concept in (GNU's version of) gettext, has a
 very restricted purpose: to separate two (accidental) uses of the
 same message-id, under different circumstances.  The same msgid may
-translated diffently in one file or the other.  The name "context" is
-pretending much more power than the gettext libraries are capable of:
-it only behaves like a namespace.
+translated diffently in one file or the other.
+
+For instance, two libraries used in the same application, or two
+componentent within a single libary both want to used the same
+default text (which usually is very short)
+
+   char * t1 = pgettext('interface', 'None');
+   char * t2 = pgettext('selections', 'None');
+
+Some translation setups use the libary name consequently as msgctxt.
+But, the name "context" is pretending much more power than the gettext
+libraries are capable of: it usually only behaves like a namespace.
 
 For M<Log::Report>, the power of "context" is extended with selecting
 between alternatives for the use of a msgid B<on the same spot>.
+
 For instance, the gender of the user of the website determines whether
 `he' or `she' needs to be used in the translation.  In this example,
 the gender is set as context keyword in the message:
 
-   my ($name, $gender) = ('Jack', 'male');
+   my ($name, $sex) = ('Jack', 'male');
    print __x"{name<gender} found his key", name => $name
-     , _context => $gender;
-
+     , _context => "gender=$sex";
 
 =chapter METHODS
 
@@ -74,10 +83,10 @@ for a certain textdomain.
 
 =cut
 
-sub _strip_tags($)
+sub _strip_ctxt_spec($)
 {   my $msgid = shift;
     my @tags;
-    while($msgid =~ s/\{ ([^}]*) \<(\w+) ([^}]*) \}/
+    while($msgid =~ s/\{ ([^<}]*) \<(\w+) ([^}]*) \}/
                       length "$1$3" ? "{$1$3}" : ''/xe)
     {  push @tags, $2;
     }
@@ -87,7 +96,7 @@ sub _strip_tags($)
 sub ctxtFor($$;$)
 {   my ($self, $msg, $lang, $def_context) = @_;
     my $rawid = $msg->msgid;
-    my ($msgid, $tags) = _strip_tags $rawid;
+    my ($msgid, $tags) = _strip_ctxt_spec $rawid;
     @$tags or return ($msgid, undef);
 
     my $maps = $self->rules;
@@ -96,7 +105,7 @@ sub ctxtFor($$;$)
     my $msg_context = $self->needDecode($rawid, $msg->context || {});
     $def_context  ||= {};
 #use Data::Dumper;
-#warn "$context = ", Dumper $msg, $msg_context, $def_context;
+#warn "context = ", Dumper $msg, $msg_context, $def_context;
 
     my @c;
     foreach my $tag (@$tags)
@@ -125,7 +134,7 @@ sub ctxtFor($$;$)
     ($msgid, $msgctxt);
 }
 
-=ci_method needDecode $source, STRING|ARRAY|HASH|LIST
+=ci_method needDecode $source, STRING|ARRAY|HASH|PAIRS
 Converts the context settings passed with the MSGID, into a HASH which will
 be matched to the context providers.
 =cut
@@ -155,7 +164,7 @@ The $msgid is used in error messages.
 
 sub expand($$@)
 {   my ($self, $raw, $lang) = @_;
-    my ($msgid, $tags) = _strip_tags $raw;
+    my ($msgid, $tags) = _strip_ctxt_spec $raw;
 
     $lang =~ s/_.*//;
 
@@ -203,15 +212,60 @@ sub _context_table($)
     \%rules;
 }
 
+#------------
 =chapter DETAILS
+
+The "contexts" concept in (GNU's version of) gettext, has a
+very restricted purpose: to separate two (accidental) uses of the
+same message-id, under different circumstances.  The same msgid may
+translated diffently in one file or the other.
+
+For instance, two libraries used in the same application, or two
+componentent within a single libary both want to used the same
+default text (which usually is very short)
+
+   char * t1 = pgettext('interface', 'None');
+   char * t2 = pgettext('selections', 'None');
+
+Some translation setups use the libary name consequently as msgctxt.
+But, the name "context" is pretending much more power than the gettext
+libraries are capable of: it usually only behaves like a namespace.
+
+=section Contexts in Log::Report
+
+For M<Log::Report>, the power of "context" is extended with selecting
+between alternatives for the use of a msgid B<on the same spot>.
+
+For instance, the gender of the user of the website determines whether
+`he' or `she' needs to be used in the translation.  In this example,
+the gender is set as context keyword in the message:
+
+   my ($name, $sex) = ('Jack', 'male');
+   print __x"{name<gender} found his key", name => $name
+     , _context => "gender=$sex";
+
+This would also be possible in traditional gettext, although probably
+rarely used.  A complication is that the scripts to maintain the po
+tables are not too smart; do not understand complex code constructs.
+Probably this would beed needed:
+
+   if(sex==MALE)
+   {   printf pgettext('male', "%s found his key\n", name);
+   }
+   else
+   {   printf pgettext('female', "%s found her key\n", name);
+   }
+  
 
 =section Using context_rules
 
 In Log::Report's extended concept of "contexts", you can select between
 multiple translations for the same msgid, when they
+
 =over 4
 =item * appear with different purpose (like gnu's concept of contexts)
 =item * need alternative translation sets B<on the same spot>
+=item * interpolate global parameters in messages
 =back
 
 In the standard gettext set-up, some msgid may accidentally collide
@@ -309,6 +363,28 @@ Standard gettext only allows a single keyword (=string)
 C<Log::Report> permits you to set-up a context for a whole
 text-domain, which means that multiple context rules may be active at
 any moment.
+
+=subsection Global parameters
+
+You can use contexts to set global interpolation parameters.  For instance,
+running a pure perl webserver, you may serve multiple domains.  Some of
+the log messages may need to show that domain name.  Of course, you can
+collect (or pass on) the hostname when throwing the error... something
+like this:
+
+   # can I access $vhost easily?
+   error __x"For {host}, login failed for {user}"
+      , host => $vhost->name, user => $user;
+
+Via contexts:
+
+   # when you know the vhost: (max once per request)
+   textdomain->setContext(host => $vhost->name);  # or updateContext
+
+   # until you reconfigure the context
+   error __x"For {host}, login failed for {user}", user => $user;
+
+The context values are always available for interpolation.
 
 =subsection Specifying the context per Domain
 
