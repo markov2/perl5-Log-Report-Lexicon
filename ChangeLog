@@ -14,6 +14,14 @@ wishlist:
 	- let xgettext-perl produce mo files as well.
 	- convert TT usage example into a real TT plugin.
 
+version 1.06: Wed 21 Sep 17:10:58 CEST 2016
+
+	Fixes:
+	- extract __nx as well.
+
+	Improvements:
+	- take domain from Dancer2::Plugin::LogReport as well [Andy Beverley]
+
 version 1.05: Tue 12 Apr 15:09:32 CEST 2016
 
 	Fixes:

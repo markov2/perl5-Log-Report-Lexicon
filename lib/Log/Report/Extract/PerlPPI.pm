@@ -14,6 +14,7 @@ my %msgids =
  ( __   => [1,    0,    0,   0,   0]
  , __x  => [1,    0,    1,   1,   0]
  , __xn => [2,    1,    1,   1,   0]
+ , __nx => [2,    1,    1,   1,   0]
  , __n  => [2,    1,    1,   0,   0]
  , N__  => [1,    0,    1,   1,   0]  # may be used with opts/vars
  , N__n => [2,    0,    1,   1,   0]  # idem
@@ -51,8 +52,10 @@ and the existing PO files will get updated accordingly.
 If no translations exist yet, one C<$lexicon/$domain.po> file will be
 created.  If you want to start a translation, copy C<$lexicon/$domain.po>
 to C<$lexicon/$domain/$lang.po> and edit that file.  You may use
-C<poedit> to edit po-files.  Do not forget to add the new po-file to
-your distribution (MANIFEST)
+C<poedit> to edit po-files.  There are many smart translation management
+applications which can hand po-files, for instance Pootle and Weblate.
+
+Do not forget to add the new po-file to your distribution (MANIFEST)
 
 =section The extraction process
 
@@ -150,8 +153,13 @@ sub process($@)
             next NODE;
         }
 
+		# Take domains which are as first parameter after 'use Log::Report'
         if($node->isa('PPI::Statement::Include'))
-        {   $node->type eq 'use' && $node->module eq 'Log::Report'
+        {   $node->type eq 'use'
+                or next NODE;
+
+   			my $module = $node->module;
+ 			$module eq 'Log::Report' || $module eq 'Dancer2::Plugin::LogReport'
                 or next NODE;
 
             $include++;
