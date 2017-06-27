@@ -34,6 +34,7 @@ Log::Report::Extract::Template - collect translatable strings from template file
 
 
 =chapter DESCRIPTION
+
 This module helps maintaining the POT files which list translatable
 strings from template files (or other flat text files) by updating the
 list of message-ids which are kept in them.
@@ -128,15 +129,25 @@ sub process($@)
     ();
 }
 
+sub _no_escapes_in($$$$)
+{   my ($msgid, $plural, $fn, $linenr) = @_;
+    return if $msgid !~ /\&\w+\;/
+           && (defined $plural ? $plural !~ /\&\w+\;/ : 1);
+	$msgid .= "|$plural" if defined $plural;
+
+    warning __x"msgid '{msgid}' contains html escapes, don't do that.  File {fn} line {linenr}"
+       , msgid => $msgid, fn => $fn, linenr => $linenr;
+}
+
 sub scanTemplateToolkit($$$$)
 {   my ($self, $version, $function, $fn, $textref) = @_;
 
     # Split the whole file on the pattern in four fragments per match:
     #       (text, leading, needed trailing, text, leading, ...)
     # f.i.  ('', '[% loc("', 'some-msgid', '", params) %]', ' more text')
-    my @frags
-      = $version==1 ? split(/[\[%]%(.*?)%[%\]]/s, $$textref)
-      :               split(/\[%(.*?)%\]/s, $$textref);
+    my @frags = $version==1
+      ? split(/[\[%]%(.*?)%[%\]]/s, $$textref)
+      : split(/\[%(.*?)%\]/s, $$textref);
 
     my $domain     = $self->domain;
     my $linenr     = 1;
@@ -151,13 +162,15 @@ sub scanTemplateToolkit($$$$)
     {   my ($skip_text, $take) = (shift @frags, shift @frags);
         $linenr += $skip_text =~ tr/\n//;
         if($take =~ $pipe_func_block)
-        {   # [%|loc(...)%]$msgid[%END%]
-            if(@frags < 2 || $frags[1] ne 'END')
+        {   # [% | loc(...) %] $msgid [%END%]
+            if(@frags < 2 || $frags[1] !~ /^\s*END\s*$/)
             {   error __x"template syntax error, no END in {fn} line {line}"
                   , fn => $fn, line => $linenr;
             }
             my $msgid  = $frags[0];  # next content
             my $plural = $msgid =~ s/\|(.*)// ? $1 : undef;
+			_no_escapes_in $msgid, $plural, $fn, $linenr;
+
             $self->store($domain, $fn, $linenr, $msgid, $plural);
             $msgs_found++;
 
@@ -166,9 +179,11 @@ sub scanTemplateToolkit($$$$)
         }
 
         if($take =~ $msgid_pipe_func)
-        {   # [%|loc(...)%]$msgid[%END%]
+        {   # [% $msgid | loc(...) %]
             my $msgid  = $2;
             my $plural = $msgid =~ s/\|(.*)// ? $1 : undef;
+			_no_escapes_in $msgid, $plural, $fn, $linenr;
+
             $self->store($domain, $fn, $linenr, $msgid, $plural);
             $msgs_found++;
 
@@ -184,6 +199,8 @@ sub scanTemplateToolkit($$$$)
                       +  ($markup[1] =~ tr/\n//);
             my $msgid  = $markup[3];
             my $plural = $msgid =~ s/\|(.*)// ? $1 : undef;
+			_no_escapes_in $msgid, $plural, $fn, $linenr;
+
             $self->store($domain, $fn, $linenr, $msgid, $plural);
             $msgs_found++;
             splice @markup, 0, 4;
@@ -216,51 +233,51 @@ For instance
 
 will scan for
 
-   [% loc("msgid", key => value, ...) %]
-   [% loc('msgid', key => value, ...) %]
-   [% loc("msgid|plural", count, key => value, ...) %]
-
-   [% INCLUDE
-        title = loc('something')
-    %]
-
-   [% | loc(n => name) %]hi {n}[% END %]
-   [% 'hi {n}' | loc(n => name) %]
+  [% loc("msgid", key => value, ...) %]
+  [% loc('msgid', key => value, ...) %]
+  [% loc("msgid|plural", count, key => value, ...) %]
+ 
+  [% INCLUDE
+       title = loc('something')
+   %]
+ 
+  [% | loc(n => name) %]hi {n}[% END %]
+  [% 'hi {n}' | loc(n => name) %]
 
 For TT1, the brackets can either be '[%...%]' or '%%...%%'.  The function
 name is treated case-sensitive.  Some people prefer 'l()' or 'L()'.
 
 The code needed
 
-   # during initiation of the webserver, once in your script (before fork)
-   my $lexicons   = 'some-directory-for-translation-tables';
-   my $translator = Log::Report::Translator::POT->new(lexicons => $lexicons);
-   my $domain     = textdomain $textdomain;
-   $domain->configure(translator => $translator);
+  # during initiation of the webserver, once in your script (before fork)
+  my $lexicons   = 'some-directory-for-translation-tables';
+  my $translator = Log::Report::Translator::POT->new(lexicons => $lexicons);
+  my $domain     = textdomain $textdomain;
+  $domain->configure(translator => $translator);
 
-   # your standard template driver
-   sub handler {
-      ...
-      my $vars      = { ...all kinds of values... };
-      $vars ->{loc} = \&translate;           # <--- this is extra
+  # your standard template driver
+  sub handler {
+     ...
+     my $vars      = { ...all kinds of values... };
+     $vars->{loc}  = \&translate;           # <--- this is extra
 
-      my $output    = '';
-      my $templater = Template->new(...);
-      $templater->process($template_fn, $vars, \$output);
-      print $output;
-   }
+     my $output    = '';
+     my $templater = Template->new(...);
+     $templater->process($template_fn, $vars, \$output);
+     print $output;
+  }
 
-   # anywhere in the same file
-   sub translate {
-       my $textdomain = ...;   # your choice when running xgettext-perl
-       my $lang       = ...;   # how do you figure that out?
-       my $msg = Log::Report::Message->fromTemplateToolkit($textdomain, @_);
-       $msg->toString($lang);
-   }
+  # anywhere in the same file
+  sub translate {
+    my $textdomain = ...;   # your choice when running xgettext-perl
+    my $lang       = ...;   # how do you figure that out?
+    my $msg = Log::Report::Message->fromTemplateToolkit($textdomain, @_);
+    $msg->toString($lang);
+  }
 
 To generate the pod tables, run in the shell something like
 
-   xgettext-perl -p $lexicons --template TT2-loc \
+  xgettext-perl -p $lexicons --template TT2-loc \
       --domain $textdomain  $templates_dir
 
 If you want to implement your own extractor --to avoid C<xgettext-perl>--
@@ -284,7 +301,7 @@ Let's say that the translation of some of the sentences on the website depend
 on the gender of the addressed person.  An example of the use in a TT2
 template:
 
-  [% loc("{name<gender} forgot his key", name => person.name %]
+  [% loc("{name<gender} forgot his key", name => person.name) %]
 
 The extraction script F<xgettext-perl> will expand this into two records
 in the PO file, respectively with msgctxt attribute 'gender=male' and

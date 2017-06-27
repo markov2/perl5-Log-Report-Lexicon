@@ -19,7 +19,7 @@ Log::Report::Lexicon::MOTcompact - use translations from an MO file
              ->read('mo/nl.mo', charset => 'utf-8')
     or die;
 
- my $header = $pot->msgid('');
+ my $header = $mot->msgid('');
  print $mot->msgstr($msgid, 3);
 
 =chapter DESCRIPTION
@@ -184,6 +184,7 @@ sub read($@)
     $self;
 }
 
+#---------
 =section Attributes
 
 =method index

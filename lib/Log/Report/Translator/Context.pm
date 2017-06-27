@@ -23,13 +23,13 @@ same message-id, under different circumstances.  The same msgid may
 translated diffently in one file or the other.
 
 For instance, two libraries used in the same application, or two
-componentent within a single libary both want to used the same
+componentent within a single library both want to used the same
 default text (which usually is very short)
 
    char * t1 = pgettext('interface', 'None');
    char * t2 = pgettext('selections', 'None');
 
-Some translation setups use the libary name consequently as msgctxt.
+Some translation setups use the library name consequently as msgctxt.
 But, the name "context" is pretending much more power than the gettext
 libraries are capable of: it usually only behaves like a namespace.
 
@@ -221,13 +221,13 @@ same message-id, under different circumstances.  The same msgid may
 translated diffently in one file or the other.
 
 For instance, two libraries used in the same application, or two
-componentent within a single libary both want to used the same
+componentent within a single library both want to used the same
 default text (which usually is very short)
 
    char * t1 = pgettext('interface', 'None');
    char * t2 = pgettext('selections', 'None');
 
-Some translation setups use the libary name consequently as msgctxt.
+Some translation setups use the library name consequently as msgctxt.
 But, the name "context" is pretending much more power than the gettext
 libraries are capable of: it usually only behaves like a namespace.
 
@@ -382,7 +382,7 @@ Via contexts:
    textdomain->setContext(host => $vhost->name);  # or updateContext
 
    # until you reconfigure the context
-   error __x"For {host}, login failed for {user}", user => $user;
+   error __x"For {_context.host}, login failed for {user}", user => $user;
 
 The context values are always available for interpolation.
 

@@ -135,7 +135,7 @@ verbose is required to see this.
 
 The statistics are sent to (Log::Report) dispatchers which accept
 notice and info.  This could be syslog.  When you have no explicit
-dispatchers in your program, the level of detail get controled by
+dispatchers in your program, the level of detail get controlled by
 the 'mode':
 
    use Log::Report mode => 'DEBUG';  # or 'VERBOSE'
