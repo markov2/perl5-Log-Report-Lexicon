@@ -95,20 +95,25 @@ Returns the msgstr index used to translate a value of $count.
 
 sub pluralIndex($)
 {   my ($self, $count) = @_;
-    my $algo = $self->{algo} or panic;
+    my $algo = $self->{algo}
+        or error __x"there is no Plural-Forms field in the header, but needed";
+
     $algo->($count);
 }
 
 =method setupPluralAlgorithm
 This method needs to be called after setting (reading or creating) a new
 table header, to interpret the plural algorithm as specified in the
-C<Plural-Forms> header field.
+C<Plural-Forms> header field.  [1.09] The header field is not required
+when not used.
+
+A full list of plural forms per language can be found at
+F<http://docs.translatehouse.org/projects/localization-guide/en/latest/l10n/pluralforms.html>
 =cut
 
 sub setupPluralAlgorithm()
 {   my $self  = shift;
-    my $forms = $self->header('Plural-Forms')
-        or error __x"there is no Plural-Forms field in the header";
+    my $forms = $self->header('Plural-Forms') or return;
 
     my $alg   = $forms =~ m/plural\=([n%!=><\s\d|&?:()]+)/ ? $1 : "n!=1";
     $alg =~ s/\bn\b/(\$_[0])/g;

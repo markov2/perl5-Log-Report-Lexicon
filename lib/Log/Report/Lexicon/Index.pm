@@ -8,11 +8,11 @@ use Log::Report::Util  qw/parse_locale/;
 use File::Find         ();
 
 # The next two need extension when other lexicon formats are added
-sub _understand_file_format($) { $_[0] =~ qr/\.[mp]o$/i }
+sub _understand_file_format($) { $_[0] =~ qr/\.(?:gmo|mo|po)$/i }
 
 sub _find($$)
 {   my ($index, $name) = (shift, lc shift);
-    $index->{"$name.mo"} || $index->{"$name.po"};  # prefer mo
+    $index->{"$name.mo"} || $index->{"name.gmo"} || $index->{"$name.po"};  # prefer mo
 }
 
 # On windows, other locale names are used.  They will get translated
@@ -67,6 +67,7 @@ sub new($;@)
     bless {dir => $dir, @_}, $class;  # dir before first argument.
 }
 
+#-------------------
 =section Accessors
 
 =method directory
@@ -75,6 +76,7 @@ Returns the directory name.
 
 sub directory() {shift->{dir}}
 
+#-------------------
 =section Search
 
 =method index
@@ -149,9 +151,9 @@ sub find($$)
     $cs    = defined $cs    ? '.'.$cs    : '';
     $modif = defined $modif ? '@'.$modif : '';
 
-    (my $normcs = $cs) =~ s/[^a-z\d]//g;
+    (my $normcs = $cs) =~ s/[^a-z0-9]//g;
     if(length $normcs)
-    {   $normcs = "iso$normcs" if $normcs !~ /\D/;
+    {   $normcs = "iso$normcs" if $normcs !~ /[^0-9-]/;
         $normcs = '.'.$normcs;
     }
 
@@ -181,7 +183,7 @@ MSGIDs when source files have changed.  All translation files which
 belong to a certain $domain are listed.
 
 The $extension filter can be used to reduce the filenames further, for
-instance to select only C<po> or only C<mo> files, and ignore readme's.
+instance to select only C<po>, C<mo> or C<gmo> files, and ignore readme's.
 Use an string, without dot and interpreted case-insensitive, or a
 regular expression.
 

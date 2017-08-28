@@ -7,6 +7,8 @@ use base 'Log::Report::Lexicon::Table';
 use Log::Report        'log-report-lexicon';
 use Log::Report::Util  qw/escape_chars unescape_chars/;
 
+use Encode             qw/find_encoding/;
+
 sub _unescape($$);
 sub _escape($$);
 
@@ -15,8 +17,7 @@ Log::Report::Lexicon::POTcompact - use translations from a POT file
 
 =chapter SYNOPSIS
  # using a PO table efficiently
- my $pot = Log::Report::Lexicon::POTcompact
-             ->read('po/nl.po', charset => 'utf-8')
+ my $pot = Log::Report::Lexicon::POTcompact->read('po/nl.po')
     or die;
 
  my $header = $pot->msgid('');
@@ -43,9 +44,11 @@ Read the POT table information from $filename, as compact as possible.
 Comments, plural-form, and such are lost on purpose: they are not
 needed for translations.
 
-=requires charset STRING
-The character-set which is used for the file.  You must specify
-this explicitly, while it cannot be trustfully detected automatically.
+=option  charset STRING
+=default charset C<undef>
+When the charset is not specified, it will be taken from the content-type
+field in the po-file header.
+
 =cut
 
 sub read($@)
@@ -53,28 +56,54 @@ sub read($@)
 
     my $self    = bless {}, $class;
 
-    my $charset = $args{charset}
-        or error __x"charset parameter required for {fn}", fn => $fn;
+    my $charset = $args{charset};
 
-    open my $fh, "<:encoding($charset):crlf", $fn
-        or fault __x"cannot read in {cs} from file {fn}"
-             , cs => $charset, fn => $fn;
+    # Try to pick-up charset from the filename (which may contain a modifier)
+    $charset    = $1
+        if !$charset && $fn =~ m!\.([\w-]+)(?:\@[^/\\]+)?\.po$!i;
+
+    my $fh;
+    if($charset)
+    {   open $fh, "<:encoding($charset):crlf", $fn
+            or fault __x"cannot read in {charset} from file {fn}"
+                , charset => $charset, fn => $fn;
+    }
+    else
+    {   open $fh, '<:raw:crlf', $fn
+            or fault __x"cannot read from file {fn} (unknown charset)", fn=>$fn;
+    }
 
     # Speed!
     my $msgctxt = '';
     my ($last, $msgid, @msgstr);
     my $index   = $self->{index} ||= {};
 
+	my $add = sub {
+       unless($charset)
+       {   $msgid eq ''
+               or error __x"header not found for charset in {fn}", fn => $fn;
+           $charset = $msgstr[0] =~ m/^content-type:.*?charset=["']?([\w-]+)/mi
+              ? $1 : error __x"cannot detect charset in {fn}", fn => $fn;
+           my $enc = find_encoding($charset)
+               or error __x"unsupported charset {charset} in {fn}"
+                    , charset => $charset, fn => $fn;
+
+           trace "auto-detected charset $charset for $fn";
+           $fh->binmode(":encoding($charset):crlf");
+
+           $_ = $enc->decode($_) for @msgstr, $msgctxt;
+       }
+
+       $index->{"$msgid#$msgctxt"} = @msgstr > 1 ? [@msgstr] : $msgstr[0];
+       ($msgctxt, $msgid, @msgstr) = ('');
+    };
+
  LINE:
     while(my $line = $fh->getline)
     {   next if substr($line, 0, 1) eq '#';
 
         if($line =~ m/^\s*$/)  # blank line starts new
-        {   if(@msgstr)
-            {   $index->{"$msgid#$msgctxt"}
-                   = @msgstr > 1 ? [@msgstr] : $msgstr[0];
-                ($msgctxt, $msgid, @msgstr) = ('');
-            }
+        {   $add->() if @msgstr;
             next LINE;
         }
 
@@ -97,27 +126,32 @@ sub read($@)
         {   $$last .= _unescape $line, $fn;
         }
     }
-
-    $index->{"$msgid#$msgctxt"} = (@msgstr > 1 ? \@msgstr : $msgstr[0])
-        if @msgstr;   # don't forget the last
+    $add->() if @msgstr;   # don't forget the last
 
     close $fh
         or failure __x"failed reading from file {fn}", fn => $fn;
 
-    $self->{filename} = $fn;
+    $self->{origcharset} = $charset;
+    $self->{filename}    = $fn;
     $self->setupPluralAlgorithm;
     $self;
 }
 
+#------------------
 =section Attributes
 
 =method filename
 Returns the name of the source file for this data.
 
+=method originalCharset
+[1.09] Returns the character-set of the strings found in the file.  They will
+get translated into utf8 before being used in Perl.
 =cut
 
-sub filename()  {shift->{filename}}
+sub filename() {shift->{filename}}
+sub originalCharset() {shift->{origcharset}}
 
+#------------------
 =section Managing PO's
 =cut
 

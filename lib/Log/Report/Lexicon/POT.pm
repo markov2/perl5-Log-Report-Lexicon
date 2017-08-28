@@ -10,6 +10,7 @@ use Log::Report::Lexicon::PO  ();
 use POSIX        qw/strftime/;
 use List::Util   qw/sum/;
 use Scalar::Util qw/blessed/;
+use Encode       qw/decode/;
 
 use constant     MSGID_HEADER => '';
 
@@ -59,8 +60,10 @@ M<Log::Report::Lexicon::PO>.
 Create a new POT file.  The initial header is generated for you, but
 it can be changed using the M<header()> method.
 
-=requires charset STRING
-The character-set which is used for the output.
+=option  charset STRING
+=default charset 'UTF-8'
+The charset to be used for the createed file.  It is unwise to use anything
+else than 'UTF-8', but allowed.  Before [1.09] this option was required.
 
 =requires textdomain STRING
 The package name, used in the directory structure to store the
@@ -97,7 +100,6 @@ Overrule the date which is included in the generated header.
 Specify an output filename.  The name can also be specified when
 M<write()> is called.
 
-=error charset parameter is required
 =error textdomain parameter is required
 =cut
 
@@ -105,10 +107,8 @@ sub init($)
 {   my ($self, $args) = @_;
 
     $self->{LRLP_fn}      = $args->{filename};
-    $self->{LRLP_index}   = $args->{index} || {};
-    $self->{LRLP_charset} = $args->{charset}
-        or error __x"charset parameter is required for {fn}"
-             , fn => ($args->{filename} || __"unnamed file");
+    $self->{LRLP_index}   = $args->{index}   || {};
+    $self->{LRLP_charset} = $args->{charset} || 'UTF-8';
 
     my $version    = $args->{version};
     my $domain     = $args->{textdomain}
@@ -137,20 +137,27 @@ Read the POT information from $filename.
 
 =requires charset STRING
 The character-set which is used for the file.  You must specify
-this explicitly, while it cannot be trustfully detected automatically.
+this explicitly.
 =cut
 
 sub read($@)
 {   my ($class, $fn, %args) = @_;
-
     my $self    = bless {LRLP_index => {}}, $class;
 
-    my $charset = $self->{LRLP_charset} = $args{charset}
-        or error __x"charset parameter is required for {fn}", fn => $fn;
+    my $charset = $args{charset};
+    $charset    = $1
+        if !$charset && $fn =~ m!\.([\w-]+)(?:\@[^/\\]+)?\.po$!i;
 
-    open my $fh, "<:encoding($charset):crlf", $fn
-        or fault __x"cannot read in {cs} from file {fn}"
-             , cs => $charset, fn => $fn;
+    my $fh;
+    if(defined $charset)
+    {   open $fh, "<:encoding($charset):crlf", $fn
+            or fault __x"cannot read in {cs} from file {fn}"
+                 , cs => $charset, fn => $fn;
+    }
+    else
+    {   open $fh, '<:raw:crlf', $fn
+            or fault __x"cannot read from file {fn} (unknown charset)", fn=>$fn;
+    }
 
     local $/   = "\n\n";
     my $linenr = 1;  # $/ frustrates $fh->input_line_number
@@ -164,14 +171,27 @@ sub read($@)
         $block   =~ s/\s+\z//s;
         length $block or last;
 
+        unless($charset)
+        {   $charset = $block =~ m/\"content-type:.*?charset=["']?([\w-]+)/mi
+              ? $1 : error __x"cannot detect charset in {fn}", fn => $fn;
+            trace "auto-detected charset $charset for $fn";
+            $fh->binmode(":encoding($charset):crlf");
+
+            $block = decode $charset, $block
+               or error __x"unsupported charset {charset} in {fn}"
+                    , charset => $charset, fn => $fn;
+        }
+
         my $po = Log::Report::Lexicon::PO->fromText($block, $location);
         $self->add($po) if $po;
     }
 
     close $fh
-        or failure __x"failed reading from file {fn}", fn => $fn;
+        or fault __x"failed reading from file {fn}", fn => $fn;
 
-    $self->{LRLP_fn} = $fn;
+    $self->{LRLP_fn}      = $fn;
+    $self->{LRLP_charset} = $charset;
+
     $self->setupPluralAlgorithm;
     $self;
 }
