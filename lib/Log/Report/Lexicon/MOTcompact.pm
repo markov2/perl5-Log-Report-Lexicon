@@ -1,8 +1,12 @@
-use warnings;
-use strict;
+# This code is part of distribution Log-Report-Lexicon. Meta-POD processed
+# with OODoc into POD and HTML manual-pages.  See README.md
+# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
 
 package Log::Report::Lexicon::MOTcompact;
 use base 'Log::Report::Lexicon::Table';
+
+use warnings;
+use strict;
 
 use Log::Report  'log-report-lexicon';
 use Fcntl        qw(SEEK_SET);
