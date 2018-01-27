@@ -179,7 +179,7 @@ sub read($@)
         {   $charset = $block =~ m/\"content-type:.*?charset=["']?([\w-]+)/mi
               ? $1 : error __x"cannot detect charset in {fn}", fn => $fn;
             trace "auto-detected charset $charset for $fn";
-            $fh->binmode(":encoding($charset):crlf");
+            binmode $fh, ":encoding($charset):crlf";
 
             $block = decode $charset, $block
                or error __x"unsupported charset {charset} in {fn}"

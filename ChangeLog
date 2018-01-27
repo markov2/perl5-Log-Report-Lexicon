@@ -20,6 +20,7 @@ version 1.11:
 
 	Fixes:
 	- fix metadata [Mohammad S Anwar]
+	- $fh->binmode not supported before 5.12 [cpantesters]
 
 version 1.10: Tue Jan 23 23:03:57 CET 2018
 
