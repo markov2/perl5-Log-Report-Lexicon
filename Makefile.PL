@@ -2,7 +2,7 @@ use ExtUtils::MakeMaker;
 
 use 5.010;
 
-my $version = '1.11';
+my $version = '1.12';
 
 my %prereq  =
   ( Test::More               => '0.86'
@@ -63,7 +63,7 @@ DISTDIR         = ../public_html/log-report-lexicon/source
 FIRST_YEAR      = 2007
 EMAIL           = markov@cpan.org
 WEBSITE         = http://perl.overmeer.net/CPAN/
-EXTENDS         = ../Log-Report-Optional:../String-Print:../../perl/LogReport:../Log-Report-Template
+EXTENDS         = ../Log-Report-Optional:../String-Print:../Log-Report:../Log-Report-Template
 
 __POSTAMBLE
 
