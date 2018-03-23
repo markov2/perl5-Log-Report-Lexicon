@@ -93,7 +93,7 @@ sub read($@)
                     , charset => $charset, fn => $fn;
 
            trace "auto-detected charset $charset for $fn";
-           $fh->binmode(":encoding($charset):crlf");
+           binmode $fh, ":encoding($charset):crlf";
 
            $_ = $enc->decode($_) for @msgstr, $msgctxt;
        }
