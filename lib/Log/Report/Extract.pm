@@ -47,7 +47,7 @@ sub new(@)
 
 sub init($)
 {   my ($self, $args) = @_;
-    my $lexi = $args->{lexicon}
+    my $lexi = $args->{lexicon} || $args->{lexicons}
         or error __"extractions require an explicit lexicon directory";
 
     -d $lexi or mkdir $lexi

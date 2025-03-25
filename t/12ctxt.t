@@ -33,7 +33,7 @@ my $rules =
   };
 
 my $translator = Log::Report::Translator::POT->new
-  ( lexicon => (dirname __FILE__)
+  ( lexicons => (dirname __FILE__),
   );
 
 my $domain = textdomain '12test'

@@ -78,7 +78,7 @@ sub new($;@)
 Returns the directory name.
 =cut
 
-sub directory() {shift->{dir}}
+sub directory() { $_[0]->{dir} }
 
 #-------------------
 =section Search

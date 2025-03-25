@@ -36,7 +36,7 @@ Log::Report::Translator::POT - translation based on POT files
    );
 
  print Log::Report::Translator::POT
-    ->new(lexicon => $dir)
+    ->new(lexicons => $dir)
     ->translate($msg, 'nl-BE');
 
  # normal use (end-users view in the program's ::main)
@@ -147,6 +147,8 @@ sub translate($;$$)
       = exists $self->{LRTP_pots}{$domain}{$locale}
       ? $self->{LRTP_pots}{$domain}{$locale}
       : $self->load($domain, $locale);
+use Data::Dumper;
+warn Dumper $self->{LRTP_pots};
 
        ($pot ? $pot->msgstr($msg->{_msgid}, $msg->{_count}, $ctxt) : undef)
     || $self->SUPER::translate($msg, $lang, $ctxt);
@@ -157,6 +159,7 @@ sub load($$)
 
     foreach my $lex ($self->lexicons)
     {   my $fn = $lex->find($domain, $locale);
+warn "LEX $lex for $locale => $fn";
 
         !$fn && $lex->list($domain)
             and last; # there are tables for domain, but not our lang

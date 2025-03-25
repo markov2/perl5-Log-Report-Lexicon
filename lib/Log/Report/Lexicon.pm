@@ -61,10 +61,7 @@ sub new(@)
     (bless {}, $class)->init( {@_} );
 }
 
-sub init($)
-{   my ($self, $args) = @_;
-    $self;
-}
+sub init($) { shift }   # $self, $args
 
 #--------------
 =section Accessors

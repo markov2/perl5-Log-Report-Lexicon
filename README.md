@@ -3,8 +3,7 @@
   * My extended documentation: <http://perl.overmeer.net/CPAN/>
   * Development via GitHub: <https://github.com/markov2/perl5-Log-Report-Lexicon>
   * Download from CPAN: <ftp://ftp.cpan.org/pub/CPAN/authors/id/M/MA/MARKOV/>
-  * Indexed from CPAN: <http://search.cpan.org/~markov/Log-Report-Lexicon/>
-    and <https://metacpan.org/release/Log-Report-Lexicon>
+  * Indexed from CPAN: <https://metacpan.org/release/Log-Report-Lexicon>
 
 This distribution contains all components of "Log::Report" which handle
 translations.  If you do not need translations, you do not need to
