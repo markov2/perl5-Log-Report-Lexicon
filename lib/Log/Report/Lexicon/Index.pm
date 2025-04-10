@@ -16,7 +16,7 @@ sub _understand_file_format($) { $_[0] =~ qr/\.(?:gmo|mo|po)$/i }
 
 sub _find($$)
 {   my ($index, $name) = (shift, lc shift);
-    $index->{"$name.mo"} || $index->{"name.gmo"} || $index->{"$name.po"};  # prefer mo
+    $index->{"$name.mo"} || $index->{"$name.gmo"} || $index->{"$name.po"};  # prefer mo
 }
 
 # On windows, other locale names are used.  They will get translated

@@ -21,6 +21,7 @@ version 1.12:
 	Fixes:
 	- binmode for POTcompact
 	- confusion between option name 'lexicon' or 'lexicons', accept both.
+	- find gmo files.
 
 	Improvements:
 	- add .gitignore
