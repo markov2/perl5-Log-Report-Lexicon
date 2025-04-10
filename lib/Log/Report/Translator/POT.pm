@@ -13,16 +13,17 @@ use Log::Report 'log-report-lexicon';
 use Log::Report::Lexicon::Index;
 use Log::Report::Lexicon::POTcompact;
 
-use POSIX qw/:locale_h/;
-use File::Spec ();
+use POSIX        qw/:locale_h/;
+use Scalar::Util qw/blessed/;
+use File::Spec   ();
 
 my %lexicons;
 sub _fn_to_lexdir($);
 
 # Work-around for missing LC_MESSAGES on old Perls and Windows
-{ no warnings;
-  eval "&LC_MESSAGES";
-  *LC_MESSAGES = sub(){5} if $@;
+{	no warnings;
+	eval "&LC_MESSAGES";
+	*LC_MESSAGES = sub(){5} if $@;
 }
 
 =chapter NAME
@@ -83,37 +84,37 @@ as defined in the header of each PO file.
 =cut
 
 sub new(@)
-{   my $class = shift;
-    # Caller cannot wait until init()
-    $class->SUPER::new(callerfn => (caller)[1], @_);
+{	my $class = shift;
+	# Caller cannot wait until init()
+	$class->SUPER::new(callerfn => (caller)[1], @_);
 }
 
 sub init($)
-{   my ($self, $args) = @_;
-    $self->SUPER::init($args);
+{	my ($self, $args) = @_;
+	$self->SUPER::init($args);
 
-    my $lex = delete $args->{lexicons} || delete $args->{lexicon}
-     || (ref $self eq __PACKAGE__ ? [] : _fn_to_lexdir $args->{callerfn});
+	my $lex = delete $args->{lexicons} || delete $args->{lexicon} ||
+		(ref $self eq __PACKAGE__ ? [] : _fn_to_lexdir $args->{callerfn});
 
-    error __x"You have to upgrade Log::Report::Lexicon to at least 1.00"
-        if +($Log::Report::Lexicon::Index::VERSION || 999) < 1.00;
+	error __x"You have to upgrade Log::Report::Lexicon to at least 1.00"
+		if +($Log::Report::Lexicon::Index::VERSION || 999) < 1.00;
 
-    my @lex;
-    foreach my $dir (ref $lex eq 'ARRAY' ? @$lex : $lex)
-    {   # lexicon indexes are shared
-        my $l = $lexicons{$dir} ||= Log::Report::Lexicon::Index->new($dir);
-        $l->index;   # index the files now
-        push @lex, $l;
-    }
-    $self->{LRTP_lexicons} = \@lex;
-    $self->{LRTP_charset}  = $args->{charset};
-    $self;
+	my @lex;
+	foreach my $dir (ref $lex eq 'ARRAY' ? @$lex : $lex)
+	{	# lexicon indexes are shared
+		my $l = $lexicons{$dir} ||= Log::Report::Lexicon::Index->new($dir);
+		$l->index;   # index the files now
+		push @lex, $l;
+	}
+	$self->{LRTP_lexicons} = \@lex;
+	$self->{LRTP_charset}  = $args->{charset};
+	$self;
 }
 
 sub _fn_to_lexdir($)
-{   my $fn = shift;
-    $fn =~ s/\.pm$//;
-    File::Spec->catdir($fn, 'messages');
+{	my $fn = shift;
+	$fn =~ s/\.pm$//;
+	File::Spec->catdir($fn, 'messages');
 }
 
 #------------
@@ -137,54 +138,52 @@ sub charset() { shift->{LRTP_charset} }
 =cut
 
 sub translate($;$$)
-{   my ($self, $msg, $lang, $ctxt) = @_;
+{	my ($self, $msg, $lang, $ctxt) = @_;
+	#!!! do not debug with $msg in a print: recursion
 
-    my $domain = $msg->{_domain};
-    my $locale = $lang || setlocale(LC_MESSAGES)
-        or return $self->SUPER::translate($msg, $lang, $ctxt);
+	my $domain = $msg->{_domain};
+	my $dname  = blessed $domain ? $domain->name : $domain;
 
-    my $pot
-      = exists $self->{LRTP_pots}{$domain}{$locale}
-      ? $self->{LRTP_pots}{$domain}{$locale}
-      : $self->load($domain, $locale);
-use Data::Dumper;
-warn Dumper $self->{LRTP_pots};
+	my $locale = $lang || setlocale(LC_MESSAGES)
+		or return $self->SUPER::translate($msg, $lang, $ctxt);
 
-       ($pot ? $pot->msgstr($msg->{_msgid}, $msg->{_count}, $ctxt) : undef)
-    || $self->SUPER::translate($msg, $lang, $ctxt);
+	my $pot
+	  = exists $self->{LRTP_pots}{$dname}{$locale}
+	  ? $self->{LRTP_pots}{$dname}{$locale}
+	  : $self->load($dname, $locale);
+
+	   ($pot ? $pot->msgstr($msg->{_msgid}, $msg->{_count}, $ctxt) : undef)
+	|| $self->SUPER::translate($msg, $lang, $ctxt);
 }
 
 sub load($$)
-{   my ($self, $domain, $locale) = @_;
+{	my ($self, $dname, $locale) = @_;
 
-    foreach my $lex ($self->lexicons)
-    {   my $fn = $lex->find($domain, $locale);
-warn "LEX $lex for $locale => $fn";
+	foreach my $lex ($self->lexicons)
+	{	my $fn = $lex->find($dname, $locale);
 
-        !$fn && $lex->list($domain)
-            and last; # there are tables for domain, but not our lang
+		!$fn && $lex->list($dname)
+			and last; # there are tables for dname, but not our lang
 
-        $fn or next;
+		$fn or next;
 
-        my ($ext) = lc($fn) =~ m/\.(\w+)$/;
-        my $class
-          = $ext eq 'mo' ? 'Log::Report::Lexicon::MOTcompact'
-          : $ext eq 'po' ? 'Log::Report::Lexicon::POTcompact'
-          : error __x"unknown translation table extension '{ext}' in {filename}"
-              , ext => $ext, filename => $fn;
+		my ($ext) = lc($fn) =~ m/\.(\w+)$/;
+		my $class
+		  = $ext eq 'mo' ? 'Log::Report::Lexicon::MOTcompact'
+		  : $ext eq 'po' ? 'Log::Report::Lexicon::POTcompact'
+		  : error __x"unknown translation table extension '{ext}' in {filename}", ext => $ext, filename => $fn;
 
-        info __x"read table {filename} as {class} for {domain} in {locale}"
-          , filename => $fn, class => $class, domain => $domain
-          , locale => $locale
-              if $domain ne 'log-report';  # avoid recursion
+		info __x"read table {filename} as {class} for {dname} in {locale}",
+			filename => $fn, class => $class, dname => $dname, locale => $locale
+			if $dname ne 'log-report';  # avoid recursion
 
-        eval "require $class" or panic $@;
+		eval "require $class" or panic $@;
  
-        return $self->{LRTP_pots}{$domain}{$locale}
-          = $class->read($fn, charset => $self->charset);
-    }
+		return $self->{LRTP_pots}{$dname}{$locale} =
+			$class->read($fn, charset => $self->charset);
+	}
 
-    $self->{LRTP_pots}{$domain}{$locale} = undef;
+	$self->{LRTP_pots}{$dname}{$locale} = undef;
 }
 
 1;
