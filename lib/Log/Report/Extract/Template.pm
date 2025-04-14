@@ -157,7 +157,7 @@ sub scanTemplateToolkit($$$$)
     my $msgs_found = 0;
 
     # pre-compile the regexes, for performance
-    my $pipe_func_block  = qr/^\s*\|\s*$function\b/;
+    my $pipe_func_block  = qr/^\s*(?:\|\s*|FILTER\s+)$function\b/;
     my $msgid_pipe_func  = qr/^\s*(["'])([^\r\n]+?)\1\s*\|\s*$function\b/;
     my $func_msgid_multi = qr/(\b$function\s*\(\s*)(["'])([^\r\n]+?)\2/s;
 
@@ -165,7 +165,7 @@ sub scanTemplateToolkit($$$$)
     {   my ($skip_text, $take) = (shift @frags, shift @frags);
         $linenr += $skip_text =~ tr/\n//;
         if($take =~ $pipe_func_block)
-        {   # [% | loc(...) %] $msgid [%END%]
+        {   # [% | loc(...) %] $msgid [%END%]  or [% FILTER ... %]...[% END %]
             if(@frags < 2 || $frags[1] !~ /^\s*END\s*$/)
             {   error __x"template syntax error, no END in {fn} line {line}"
                   , fn => $fn, line => $linenr;
