@@ -191,6 +191,10 @@ sub process($@)
             my $def  = $msgids{$word}  # get __() description
                 or return 0;
 
+			# Avoid the declaration of the conversion routines in Log::Report
+			$domain ne 'log-report' || ! $node->parent->isa('PPI::Statement::Sub')
+				or return 0;
+
             my @msgids = $self->_get($node, $domain, $word, $def)
                 or return 0;
 
@@ -198,9 +202,7 @@ sub process($@)
 
             my $line = $node->location->[0];
             unless($domain)
-            {   mistake
-                    __x"no text-domain for translatable at {fn} line {line}"
-                  , fn => $fn, line => $line;
+            {   mistake __x"no text-domain for translatable at {fn} line {line}", fn => $fn, line => $line;
                 return 0;
             }
 

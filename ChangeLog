@@ -22,6 +22,7 @@ version 1.12:
 	- binmode for POTcompact
 	- confusion between option name 'lexicon' or 'lexicons', accept both.
 	- find gmo files.
+	- no translations for the declaration of the conversion routines in Log::Report
 
 	Improvements:
 	- add .gitignore

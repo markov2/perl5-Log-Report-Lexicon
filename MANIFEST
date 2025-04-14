@@ -16,8 +16,6 @@ lib/Log/Report/Translator/Gettext.pm
 lib/Log/Report/Translator/POT.pm
 lib/Log/Report/Win32Locale.pm
 t/00use.t
-lib/Log/Report/messages
-lib/Log/Report/messages/log-report-lexicon
 lib/Log/Report/messages/log-report-lexicon/nl_NL.po
 t/04locale.t
 t/10context.t
