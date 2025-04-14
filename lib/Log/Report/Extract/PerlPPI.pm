@@ -127,8 +127,8 @@ sub process($@)
 
     my $charset = $opts{charset} || 'iso-8859-1';
 
-    $charset eq 'iso-8859-1'
-        or error __x"PPI only supports iso-8859-1 (latin-1) on the moment";
+#   $charset eq 'iso-8859-1'
+#       or error __x"PPI only supports iso-8859-1 (latin-1) on the moment";
 
     my $doc = PPI::Document->new($fn, readonly => 1)
         or fault __x"cannot read perl from file {filename}", filename => $fn;
