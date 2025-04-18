@@ -16,7 +16,9 @@ bugs:
 wishlist:
 	- let xgettext-perl produce mo files as well.
 
-version 1.12:
+version 1.13:
+
+version 1.12: Fri 18 Apr 17:10:11 CEST 2025
 
 	Fixes:
 	- binmode for POTcompact
