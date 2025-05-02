@@ -174,11 +174,11 @@ xgettext-perl - extract translatable strings
   TEMPLATE OPTIONS
   --domain      -d $domain    domain to be used
   --template    -t $notation  how to recognize the strings to be taken
-  --files-match -m $regex     filter filenames, default .pm and .pl
+  --files-match -m $regex     filter filenames, default .tt and .tt2
 
   SCRIPT OPTIONS
   --language    -L $proglang  programming language syntax (now only perl)
-  --files-match -m $regex     filter filenames, default .tt and .tt2
+  --files-match -m $regex     filter filenames, default .pm and .pl
 
 =head1 DESCRIPTION
 
@@ -198,7 +198,7 @@ context sensitive translations, which require a configuration file.
 See Log::Report::Context
 
 Say, your scripts and templates use textdomain name-spaces C<domain1>
-and C<domain2> (plase use better names), then you can pass their
+and C<domain2> (please use better names), then you can pass their
 respective configuration files as:
 
   --config domain1=filename domain2=filename    # or
@@ -221,6 +221,6 @@ notation (with leading '__' to mean gettext)
 
 =head2 Extracting from Template::Toolkit
 
-See L<Log::Report::Extract::Template>
+		See L<Log::Report::Template::Extract>
 
 =cut
