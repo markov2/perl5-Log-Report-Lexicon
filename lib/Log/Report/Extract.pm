@@ -188,15 +188,19 @@ sub showStats(;$)
     }
 }
 
-=method write [$domain]
+=method write [$domain], %options
 Update the information of the files related to $domain, by default all
 processed DOMAINS.
 
 All information known about the written $domain is removed from the cache.
+The %options are passed to the C<write()> of the specific lexicon
+manager.
 =cut
 
-sub write(;$)
-{   my ($self, $domain) = @_;
+sub write(;$%)
+{   my $self = shift;
+	my ($domain, %args) = @_ % 1 ? @_ : (undef, @_);
+
     unless(defined $domain)  # write all
     {   $self->write($_) for $self->domains;
         return;
@@ -207,7 +211,7 @@ sub write(;$)
 
     for my $pot (@$pots)
     {   $pot->updated;
-        $pot->write;
+        $pot->write(%args);
     }
 
     $self;
