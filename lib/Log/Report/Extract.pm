@@ -287,7 +287,6 @@ sub store($$$$;$)
     MSGCTXT:
         foreach my $msgctxt (@$msgctxts)
         {
-#warn "($stripped, $msgctxt)";
             if(my $po = $pot->msgid($stripped, $msgctxt))
             {   $po->addReferences( ["$fn:$linenr"]);
                 $po->plural($plural) if $plural;

@@ -98,14 +98,14 @@ my $extr;
 my %processed;
 
 if($template)
-{   # process from template
-    eval "require Log::Report::Extract::Template";
+{   # process from template toolkit
+    eval "require Log::Report::Template::Extract";
     panic $@ if $@;
 
     $default_domain
         or error __x"specify a text-domain (-d) for the templates";
 
-    $extr = Log::Report::Extract::Template->new
+    $extr = Log::Report::Template::Extract->new
       ( lexicon => $output
       , charset => $char_out
       , domain  => $default_domain

@@ -18,6 +18,10 @@ wishlist:
 
 version 1.13:
 
+	Changes:
+	- move Log::Report::Extract::Template to Log::Report::Template::Extract.pm
+	  in distribution Log-Report-Template.
+
 version 1.12: Fri 18 Apr 17:10:11 CEST 2025
 
 	Fixes:
