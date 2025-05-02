@@ -128,6 +128,7 @@ sub cleanup(%)
     $keep    = +{ map +($_ => 1), @$keep }
         if ref $keep eq 'ARRAY';
 
+warn "CLEANER";
     foreach my $domain ($self->domains)
     {   $_->keepReferencesTo($keep) for $self->pots($domain);
     }
@@ -199,7 +200,7 @@ manager.
 
 sub write(;$%)
 {   my $self = shift;
-	my ($domain, %args) = @_ % 1 ? @_ : (undef, @_);
+	my ($domain, %args) = @_ % 2 ? @_ : (undef, @_);
 
     unless(defined $domain)  # write all
     {   $self->write($_) for $self->domains;

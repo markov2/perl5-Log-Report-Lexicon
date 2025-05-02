@@ -20,7 +20,7 @@ my ($char_in, $char_out) = ('utf-8', 'utf-8');
 my ($default_domain, $mode, $template);
 
 GetOptions
-   'cleanup!'          => $cleanup   # kill transl from removed files, def true
+   'cleanup!'          => \$cleanup  # kill transl from removed files, def true
  , 'config|c=s'        => \%configs  # domain configurations
  , 'domain|d=s'        => \$default_domain    # for templates
  , 'files-from|f=s'    => \$from     # file with filenames (MANIFEST?) or '-'
@@ -144,6 +144,7 @@ else
     }
 }
 
+warn "CLEANUP KEEP=$cleanup";
 $extr->cleanup(keep => \%processed)
     if $cleanup;
 

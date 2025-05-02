@@ -22,6 +22,9 @@ version 1.13:
 	- move Log::Report::Extract::Template to Log::Report::Template::Extract.pm
 	  in distribution Log-Report-Template.
 
+	Fixes:
+	- --no-cleanup option was broken.
+
 	Improvements:
 	- ::Extract::write() passes options to ::Lexicon writers.
 
