@@ -128,7 +128,6 @@ sub cleanup(%)
     $keep    = +{ map +($_ => 1), @$keep }
         if ref $keep eq 'ARRAY';
 
-warn "CLEANER";
     foreach my $domain ($self->domains)
     {   $_->keepReferencesTo($keep) for $self->pots($domain);
     }
