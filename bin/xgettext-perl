@@ -42,7 +42,7 @@ if($version)
     exit 0;
 }
 
-$help && podusage(0);
+$help && pod2usage(0);
 
 # Load domain information, for instance defining context_rules.  The
 # definitions are global, so automatically find their way in the Log::Report
