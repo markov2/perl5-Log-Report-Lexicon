@@ -35,7 +35,7 @@ GetOptions
  , 'verbose=i'         => \$mode
  , 'version|V'         => \$version
  , 'v+'                => \$mode
-   or pod2usage(1);
+   or exit 1;
 
 if($version)
 {   print "Log::Report $Log::Report::VERSION\n";
