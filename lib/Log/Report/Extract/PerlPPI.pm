@@ -166,7 +166,7 @@ sub process($@)
                 or next NODE;
 
             $include++;
-            my $dom = ($node->schildren)[2];
+            my $dom = ($node->arguments)[0];
             $domain
                = $dom->isa('PPI::Token::Quote')            ? $dom->string
                : $dom->isa('PPI::Token::QuoteLike::Words') ? ($dom->literal)[0]
