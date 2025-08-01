@@ -166,11 +166,12 @@ sub process($@)
                 or next NODE;
 
             $include++;
-            my $dom = ($node->arguments)[0];
-            $domain
-               = $dom->isa('PPI::Token::Quote')            ? $dom->string
-               : $dom->isa('PPI::Token::QuoteLike::Words') ? ($dom->literal)[0]
-               : undef;
+            if (my $dom = ($node->arguments)[0]) {
+                $domain
+                   = $dom->isa('PPI::Token::Quote')            ? $dom->string
+                   : $dom->isa('PPI::Token::QuoteLike::Words') ? ($dom->literal)[0]
+                   : undef;
+            }
 
             $self->_reset($domain, $fn)
                 if defined $domain;
