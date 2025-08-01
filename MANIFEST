@@ -26,6 +26,7 @@ t/21pot_modif.t
 t/22compact.t
 t/30index.t
 t/40ppi.t
+t/41ppi_imports.t
 t/hello-world-slovak.po
 t/simplecal/README
 t/simplecal/ar.po
