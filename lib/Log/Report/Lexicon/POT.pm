@@ -155,8 +155,7 @@ sub read($@)
     my $fh;
     if(defined $charset)
     {   open $fh, "<:encoding($charset):crlf", $fn
-            or fault __x"cannot read in {cs} from file {fn}"
-                 , cs => $charset, fn => $fn;
+            or fault __x"cannot read in {cs} from file {fn}", cs => $charset, fn => $fn;
     }
     else
     {   open $fh, '<:raw:crlf', $fn
@@ -182,8 +181,7 @@ sub read($@)
             binmode $fh, ":encoding($charset):crlf";
 
             $block = decode $charset, $block
-               or error __x"unsupported charset {charset} in {fn}"
-                    , charset => $charset, fn => $fn;
+               or error __x"unsupported charset {charset} in {fn}", charset => $charset, fn => $fn;
         }
 
         my $po = Log::Report::Lexicon::PO->fromText($block, $location);
@@ -234,8 +232,7 @@ sub write($@)
     else
     {    my $layers = '>:encoding('.$self->charset.')';
          open $fh, $layers, $file
-             or fault __x"cannot write to file {fn} with {layers}"
-                    , fn => $file, layers => $layers;
+             or fault __x"cannot write to file {fn} with {layers}", fn => $file, layers => $layers;
     }
 
     $fh->print($self->msgid(MSGID_HEADER)->toString(@opt));
@@ -338,8 +335,7 @@ sub add($)
         if blessed $h;
 
     my $ctxt = $po->msgctxt // '';
-    error __x"translation already exists for '{msgid}' with '{ctxt}"
-      , msgid => $msgid, ctxt => $ctxt
+    error __x"translation already exists for '{msgid}' with '{ctxt}", msgid => $msgid, ctxt => $ctxt
         if $h->{$ctxt};
 
     $h->{$ctxt} = $po;
@@ -355,8 +351,7 @@ references are returned.
 
 sub translations(;$)
 {   my $self = shift;
-    @_ or return map +(blessed $_ ? $_ : values %$_)
-      , values %{$self->index};
+    @_ or return map +(blessed $_ ? $_ : values %$_), values %{$self->index};
 
     error __x"the only acceptable parameter is 'ACTIVE', not '{p}'", p => $_[0]
         if $_[0] ne 'ACTIVE';
@@ -379,8 +374,7 @@ sub _now() { strftime "%Y-%m-%d %H:%M%z", localtime }
 sub header($;$)
 {   my ($self, $field) = (shift, shift);
     my $header = $self->msgid(MSGID_HEADER)
-        or error __x"no header defined in POT for file {fn}"
-                   , fn => $self->filename;
+        or error __x"no header defined in POT for file {fn}", fn => $self->filename;
 
     if(!@_)
     {   my $text = $header->msgstr(0) || '';

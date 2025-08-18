@@ -14,6 +14,9 @@ use Log::Report::Lexicon::POTcompact ();
 *_escape   = \&Log::Report::Lexicon::POTcompact::_escape;
 *_unescape = \&Log::Report::Lexicon::POTcompact::_unescape;
 
+sub flat(@) { grep defined, ref $_[0] eq 'ARRAY' ? @{$_[0]} : @_ }
+
+#--------------------
 =chapter NAME
 Log::Report::Lexicon::PO - one translation definition
 
@@ -79,7 +82,7 @@ sub new(@)
 sub init($)
 {   my ($self, $args) = @_;
     defined($self->{msgid} = delete $args->{msgid})
-       or error "no msgid defined for PO";
+        or error "no msgid defined for PO";
 
     $self->{plural}  = delete $args->{msgid_plural};
     $self->{msgstr}  = delete $args->{msgstr};
@@ -167,8 +170,10 @@ empty string if there are no comments.
 
 sub addComment(@)
 {   my $self    = shift;
+    my @lines   = flat @_;
     my $comment = $self->{comment};
-    foreach my $line (ref $_[0] eq 'ARRAY' ? @{$_[0]} : @_)
+
+    foreach my $line (@lines)
     {   defined $line or next;
         $line =~ s/[\r\n]+/\n/;  # cleanup line-endings
         $comment .= $line;
@@ -198,11 +203,12 @@ empty string if there are no comments.
 =cut
 
 sub addAutomatic(@)
-{   my $self = shift;
+{   my $self  = shift;
+    my @lines = flat @_;
+
     my $auto = $self->{automatic};
-    foreach my $line (ref $_[0] eq 'ARRAY' ? @{$_[0]} : @_)
-    {   defined $line or next;
-        $line =~ s/[\r\n]+/\n/;  # cleanup line-endings
+    foreach my $line (@lines)
+    {   $line =~ s/[\r\n]+/\n/;  # cleanup line-endings
         $auto .= $line;
     }
 
@@ -219,7 +225,7 @@ Returns the unsorted LIST of references.
 sub references(@)
 {   my $self = shift;
     if(@_)
-    {   $self->{refs} = {};
+    {   $self->{refs} = +{ };
         $self->addReferences(@_);
     }
 
@@ -235,12 +241,9 @@ C<filename:linenumber>.  Returns the internal HASH with references.
 sub addReferences(@)
 {   my $self = shift;
     my $refs = $self->{refs} ||= {};
-    @_ or return $refs;
 
-    $refs->{$_}++
-       for @_ > 1               ? @_       # list
-         : ref $_[0] eq 'ARRAY' ? @{$_[0]} # array
-         : split " ",$_[0];                # scalar
+	my @new = @_==1 && defined $_[0] ? split(" ", $_[0]) : flat @_;
+    $refs->{$_}++ for @new;
     $refs;
 }
 
@@ -285,7 +288,7 @@ sub isActive() { $_[0]->{msgid} eq '' || keys %{$_[0]->{refs}} }
 Returns whether the translation needs human inspection.
 =cut
 
-sub fuzzy(;$) {my $self = shift; @_ ? $self->{fuzzy} = shift : $self->{fuzzy}}
+sub fuzzy(;$) { my $self = shift; @_ ? $self->{fuzzy} = shift : $self->{fuzzy} }
 
 =method format $language | <PAIRS|ARRAY|HASH>
 When one $language is specified, it looks whether a C<$language-format> or
@@ -313,7 +316,7 @@ sub format(@)
     return $format->{ (shift) }
         if @_==1 && !ref $_[0];  # language
 
-    my @pairs = @_ > 1 ? @_ : ref $_[0] eq 'ARRAY' ? @{$_[0]} : %{$_[0]};
+    my @pairs = ref $_[0] eq 'HASH' ? %{$_[0]} : flat @_;
     while(@pairs)
     {   my($k, $v) = (shift @pairs, shift @pairs);
         $format->{$k} = $v;
@@ -342,6 +345,8 @@ sub addFlags($)
     }
     $_;
 }
+
+#-----------------
 =section Parsing
 
 =c_method fromText STRING, [$where]
@@ -354,7 +359,7 @@ sub fromText($$)
     my @lines = split /[\r\n]+/, shift;
     my $where = shift || ' unknown location';
 
-    my $self  = bless {}, $class;
+    my $self  = bless +{}, $class;
 
     # translations which are not used anymore are escaped with #~
     # however, we just say: no references found.
@@ -369,8 +374,7 @@ sub fromText($$)
             elsif($1 eq ':' ) { $self->addReferences($_) }
             elsif($1 eq ',' ) { $self->addFlags($_)      }
             else
-            {   warning __x"unknown comment type '{cmd}' at {where}"
-                  , cmd => "#$1", where => $where;
+            {   warning __x"unknown comment type '{cmd}' at {where}", cmd => "#$1", where => $where;
             }
             undef $last;
         }
@@ -395,8 +399,7 @@ sub fromText($$)
                 $last = \($self->{msgctxt});
             }
             else
-            {   warning __x"do not understand command '{cmd}' at {where}"
-                  , cmd => $cmd, where => $where;
+            {   warning __x"do not understand command '{cmd}' at {where}", cmd => $cmd, where => $where;
                 undef $last;
             }
         }
@@ -407,13 +410,11 @@ sub fromText($$)
         elsif( m/^\s*\"/ )
         {   if(defined $last) { $$last .= _unescape($_,$where) }
             else
-            {   warning __x"quoted line is not a continuation at {where}"
-                 , where => $where;
+            {   warning __x"quoted line is not a continuation at {where}", where => $where;
             }
         }
         else
-        {   warning __x"do not understand line at {where}:\n  {line}"
-              , where => $where, line => $_;
+        {   warning __x"do not understand line at {where}:\n  {line}", where => $where, line => $_;
         }
     }
 
@@ -456,8 +457,7 @@ sub toString(@)
 
     while(@refs)
     {   my $line = '#:';
-        $line .= ' '.shift @refs
-            while @refs && length($line) + length($refs[0]) < 80;
+        $line .= ' '.shift @refs while @refs && length($line) + length($refs[0]) < 80;
         push @record, "$line\n";
     }
 
@@ -479,8 +479,7 @@ sub toString(@)
     my @msgstr  = ref $msgstr ? @$msgstr : $msgstr;
     my $plural  = $self->{plural};
     if(defined $plural)
-    {   push @record
-         , "${active}msgid_plural " . _escape($plural, "\n$active") . "\n";
+    {   push @record, "${active}msgid_plural " . _escape($plural, "\n$active") . "\n";
 
         push @msgstr, ''
             while defined $nplurals && @msgstr < $nplurals;
@@ -492,16 +491,12 @@ sub toString(@)
 
         $nplurals ||= 2;
         for(my $nr = 0; $nr < $nplurals; $nr++)
-        {   push @record, "${active}msgstr[$nr] "
-               . _escape($msgstr[$nr], "\n$active") . "\n";
+        {   push @record, "${active}msgstr[$nr] " . _escape($msgstr[$nr], "\n$active") . "\n";
         }
     }
     else
-    {   warning __x"no plurals for '{msgid}'", msgid => $msgid
-            if @msgstr > 1;
-
-        push @record
-          , "${active}msgstr " . _escape($msgstr[0], "\n$active") . "\n";
+    {   warning __x"no plurals for '{msgid}'", msgid => $msgid if @msgstr > 1;
+        push @record, "${active}msgstr " . _escape($msgstr[0], "\n$active") . "\n";
     }
 
     join '', @record;

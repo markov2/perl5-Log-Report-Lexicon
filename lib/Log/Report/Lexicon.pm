@@ -24,8 +24,8 @@ When you use M<Log::Report> and need to add translations, it may be
 very little work: when you nicely wrote texts in the advised message
 format like
 
-   print __x"Greetings to you, {name}", name => $name;
-   fault __x"cannot open file {filename}", filename => $fn;
+  print __x"Greetings to you, {name}", name => $name;
+  fault __x"cannot open file {filename}", filename => $fn;
 
 then all is in perfect condition to introduce translations: it requires
 very little to no additions to the existing code!
@@ -58,16 +58,13 @@ The run-time component of translations.
 
 sub new(@)
 {   my $class = shift;
-    (bless {}, $class)->init( {@_} );
+    (bless {}, $class)->init( +{ @_ } );
 }
 
 sub init($) { shift }   # $self, $args
 
 #--------------
 =section Accessors
-
 =cut
-
-#--------------
 
 1;

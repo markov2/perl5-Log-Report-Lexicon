@@ -57,10 +57,9 @@ field in the po-file header.
 
 sub read($@)
 {   my ($class, $fn, %args) = @_;
-
-    my $self    = bless {}, $class;
-
     my $charset = $args{charset};
+
+    my $self    = bless +{}, $class;
 
     # Try to pick-up charset from the filename (which may contain a modifier)
     $charset    = $1
@@ -69,8 +68,7 @@ sub read($@)
     my $fh;
     if($charset)
     {   open $fh, "<:encoding($charset):crlf", $fn
-            or fault __x"cannot read in {charset} from file {fn}"
-                , charset => $charset, fn => $fn;
+            or fault __x"cannot read in {charset} from file {fn}", charset => $charset, fn => $fn;
     }
     else
     {   open $fh, '<:raw:crlf', $fn
@@ -86,11 +84,10 @@ sub read($@)
        unless($charset)
        {   $msgid eq ''
                or error __x"header not found for charset in {fn}", fn => $fn;
-           $charset = $msgstr[0] =~ m/^content-type:.*?charset=["']?([\w-]+)/mi
-              ? $1 : error __x"cannot detect charset in {fn}", fn => $fn;
+           $charset = $msgstr[0] =~ m/^content-type:.*?charset=["']?([\w-]+)/mi ? $1
+               : error __x"cannot detect charset in {fn}", fn => $fn;
            my $enc = find_encoding($charset)
-               or error __x"unsupported charset {charset} in {fn}"
-                    , charset => $charset, fn => $fn;
+               or error __x"unsupported charset {charset} in {fn}", charset => $charset, fn => $fn;
 
            trace "auto-detected charset $charset for $fn";
            binmode $fh, ":encoding($charset):crlf";
@@ -196,8 +193,7 @@ sub msgstr($;$$)
 
 sub _unescape($$)
 {   unless( $_[0] =~ m/^\s*\"(.*)\"\s*$/ )
-    {   warning __x"string '{text}' not between quotes at {location}"
-           , text => $_[0], location => $_[1];
+    {   warning __x"string '{text}' not between quotes at {location}", text => $_[0], location => $_[1];
         return $_[0];
     }
     unescape_chars $1;
