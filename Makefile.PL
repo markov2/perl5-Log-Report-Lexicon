@@ -1,6 +1,6 @@
 use ExtUtils::MakeMaker;
 
-use 5.010;
+use 5.016;
 
 # Use command 'oodist' to produce your whole software release.
 my $version  = '1.14';

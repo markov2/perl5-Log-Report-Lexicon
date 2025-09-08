@@ -18,6 +18,9 @@ wishlist:
 
 version 1.14:
 
+	Changes:
+	- require Perl 5.16 (2012)
+
 	Fixes:
 	- fix pod2usage
 	  github merge#3 [Sam Kington]
