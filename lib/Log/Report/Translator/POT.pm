@@ -1,3 +1,9 @@
+#oodist: *** DO NOT USE THIS VERSION FOR PRODUCTION ***
+#oodist: This file contains OODoc-style documentation which will get stripped
+#oodist: during its release in the distribution.  You can use this file for
+#oodist: testing, however the code of this development version may be broken!
+#oorestyle: old style disclaimer to be removed.
+
 # This code is part of distribution Log-Report-Lexicon. Meta-POD processed
 # with OODoc into POD and HTML manual-pages.  See README.md
 # Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
@@ -26,31 +32,32 @@ sub _fn_to_lexdir($);
 	*LC_MESSAGES = sub(){5} if $@;
 }
 
+#--------------------
 =chapter NAME
 Log::Report::Translator::POT - translation based on POT files
 
 =chapter SYNOPSIS
- # internal use
- my $msg = Log::Report::Message->new
-   ( _msgid  => "Hello World\n"
-   , _domain => 'my-domain'
-   );
+  # internal use
+  my $msg = Log::Report::Message->new(
+	_msgid  => "Hello World\n",
+    _domain => 'my-domain',
+  );
 
- print Log::Report::Translator::POT
-    ->new(lexicons => $dir)
-    ->translate($msg, 'nl-BE');
+  print Log::Report::Translator::POT
+     ->new(lexicons => $dir)
+     ->translate($msg, 'nl-BE');
 
- # normal use (end-users view in the program's ::main)
- textdomain 'my-domain'
-   , translator =>  Log::Report::Translator::POT->new(lexicon => $dir);
- print __"Hello World\n";
+  # normal use (end-users view in the program's ::main)
+  textdomain 'my-domain',
+    translator =>  Log::Report::Translator::POT->new(lexicon => $dir);
+  print __"Hello World\n";
 
 =chapter DESCRIPTION
 
 Translate a message by directly accessing POT files.  The files will load
 lazily (unless forced).  This module accesses the PO's in a compact way,
-using M<Log::Report::Lexicon::POTcompact>, which is much more efficient
-than M<Log::Report::Lexicon::PO>.
+using Log::Report::Lexicon::POTcompact, which is much more efficient
+than Log::Report::Lexicon::PO.
 
 =chapter METHODS
 
@@ -61,14 +68,14 @@ than M<Log::Report::Lexicon::PO>.
 =option  lexicons DIRECTORY
 =default lexicons <see text>
 The DIRECTORY where the translations can be found.  See
-M<Log::Report::Lexicon::Index> for the expected structure of such
+Log::Report::Lexicon::Index for the expected structure of such
 DIRECTORY.
 
 The default is based on the location of the module which instantiates
 this translator.  The filename of the module is stripped from its C<.pm>
 extension, and used as directory name.  Within that directory, there
 must be a directory named C<messages>, which will be the root directory
-of a M<Log::Report::Lexicon::Index>.
+of a Log::Report::Lexicon::Index.
 
 =option  charset STRING
 =default charset <undef>
@@ -76,11 +83,14 @@ Enforce character set for files.  We default to reading the character-set
 as defined in the header of each PO file.
 
 =example default lexicon directory
- # file xxx/perl5.8.8/My/Module.pm
- use Log::Report 'my-domain'
-   , translator => Log::Report::Translator::POT->new;
+  # file xxx/perl5.8.8/My/Module.pm
+  use Log::Report 'my-domain',
+    translator => Log::Report::Translator::POT->new;
 
- # lexicon now in xxx/perl5.8.8/My/Module/messages/
+  # lexicon now in xxx/perl5.8.8/My/Module/messages/
+=cut
+
+=error You have to upgrade Log::Report::Lexicon to at least 1.00
 =cut
 
 sub new(@)
@@ -96,8 +106,8 @@ sub init($)
 	my $lex = delete $args->{lexicons} || delete $args->{lexicon} ||
 		(ref $self eq __PACKAGE__ ? [] : _fn_to_lexdir $args->{callerfn});
 
-	error __x"You have to upgrade Log::Report::Lexicon to at least 1.00"
-		if +($Log::Report::Lexicon::Index::VERSION || 999) < 1.00;
+	+($Log::Report::Lexicon::Index::VERSION || 999) >= 1.00
+		or error __x"You have to upgrade Log::Report::Lexicon to at least 1.00";
 
 	my @lex;
 	foreach my $dir (ref $lex eq 'ARRAY' ? @$lex : $lex)
@@ -117,24 +127,28 @@ sub _fn_to_lexdir($)
 	File::Spec->catdir($fn, 'messages');
 }
 
-#------------
+#--------------------
 =section Accessors
 
 =method lexicons
-Returns a list of M<Log::Report::Lexicon::Index> objects, where the
+Returns a list of Log::Report::Lexicon::Index objects, where the
 translation files may be located.
 =cut
 
-sub lexicons() { @{shift->{LRTP_lexicons}} }
+sub lexicons() { @{ $_[0]->{LRTP_lexicons}} }
 
 =method charset
 Returns the default charset, which can be overrule by the locale.
 =cut
 
-sub charset() { shift->{LRTP_charset} }
+sub charset() { $_[0]->{LRTP_charset} }
 
-#------------
+#--------------------
 =section Translating
+=cut
+
+=error unknown translation table extension '$ext' in $filename
+=info read table $filename as $class for $dname in $locale
 =cut
 
 sub translate($;$$)
@@ -171,16 +185,14 @@ sub load($$)
 		my $class
 		  = $ext eq 'mo' ? 'Log::Report::Lexicon::MOTcompact'
 		  : $ext eq 'po' ? 'Log::Report::Lexicon::POTcompact'
-		  : error __x"unknown translation table extension '{ext}' in {filename}", ext => $ext, filename => $fn;
+		  :     error __x"unknown translation table extension '{ext}' in {filename}", ext => $ext, filename => $fn;
 
-		info __x"read table {filename} as {class} for {dname} in {locale}",
-			filename => $fn, class => $class, dname => $dname, locale => $locale
+		info __x"read table {filename} as {class} for {dname} in {locale}", filename => $fn, class => $class, dname => $dname, locale => $locale
 			if $dname ne 'log-report';  # avoid recursion
 
 		eval "require $class" or panic $@;
- 
-		return $self->{LRTP_pots}{$dname}{$locale} =
-			$class->read($fn, charset => $self->charset);
+
+		return $self->{LRTP_pots}{$dname}{$locale} = $class->read($fn, charset => $self->charset);
 	}
 
 	$self->{LRTP_pots}{$dname}{$locale} = undef;

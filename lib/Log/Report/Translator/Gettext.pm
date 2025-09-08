@@ -1,6 +1,7 @@
-# This code is part of distribution Log-Report-Lexicon. Meta-POD processed
-# with OODoc into POD and HTML manual-pages.  See README.md
-# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
+#oodist: *** DO NOT USE THIS VERSION FOR PRODUCTION ***
+#oodist: This file contains OODoc-style documentation which will get stripped
+#oodist: during its release in the distribution.  You can use this file for
+#oodist: testing, however the code of this development version may be broken!
 
 package Log::Report::Translator::Gettext;
 use base 'Log::Report::Translator';
@@ -12,26 +13,27 @@ use Log::Report 'log-report-lexicon';
 
 use Locale::gettext;
 
+#--------------------
 =chapter NAME
 Log::Report::Translator::Gettext - the GNU gettext infrastructure
 
 =chapter SYNOPSIS
- # normal use (end-users view)
+  # normal use (end-users view)
 
- textdomain 'my-domain'
-   , translator => Log::Report::Translator::Gettext->new;
+  textdomain 'my-domain',
+    translator => Log::Report::Translator::Gettext->new;
 
- print __"Hello World\n";  # language determined by environment
+  print __"Hello World\n";  # language determined by environment
 
- # internal use
+  # internal use
 
- my $msg = Log::Report::Message->new
-   ( _msgid      => "Hello World\n"
-   , _textdomain => 'my-domain'
-   );
+  my $msg = Log::Report::Message->new(
+    _msgid      => "Hello World\n",
+    _textdomain => 'my-domain',
+  );
 
- print Log::Report::Translator::Gettext->new
-     ->translate($msg, 'nl-BE');
+  print Log::Report::Translator::Gettext->new
+      ->translate($msg, 'nl-BE');
 
 =chapter DESCRIPTION
 UNTESTED!!!  PLEASE CONTRIBUTE!!!
@@ -50,24 +52,23 @@ also only available on certain systems.
 =cut
 
 sub translate($;$$)
-{   my ($msg, $lang, $ctxt) = @_;
+{	my ($msg, $lang, $ctxt) = @_;
 
 #XXX MO: how to use $lang when specified?
-    my $domain = $msg->{_textdomain};
-    load_domain $domain;
+	my $domain = $msg->{_textdomain};
+	load_domain $domain;
 
-    my $count  = $msg->{_count};
+	my $count  = $msg->{_count};
 
-    defined $count
-    ? ( defined $msg->{_category}
-      ? dcngettext($domain, $msg->{_msgid}, $msg->{_plural}, $count
-                  , $msg->{_category})
-      : dngettext($domain, $msg->{_msgid}, $msg->{_plural}, $count)
-      )
-    : ( defined $msg->{_category}
-      ? dcgettext($domain, $msg->{_msgid}, $msg->{_category})
-      : dgettext($domain, $msg->{_msgid})
-      );
+	defined $count
+	  ?	( defined $msg->{_category}
+		? dcngettext($domain, $msg->{_msgid}, $msg->{_plural}, $count, $msg->{_category})
+		: dngettext($domain, $msg->{_msgid}, $msg->{_plural}, $count)
+		)
+	  :	( defined $msg->{_category}
+		? dcgettext($domain, $msg->{_msgid}, $msg->{_category})
+		: dgettext($domain, $msg->{_msgid})
+		);
 }
 
 1;

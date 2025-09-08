@@ -1,3 +1,9 @@
+#oodist: *** DO NOT USE THIS VERSION FOR PRODUCTION ***
+#oodist: This file contains OODoc-style documentation which will get stripped
+#oodist: during its release in the distribution.  You can use this file for
+#oodist: testing, however the code of this development version may be broken!
+#oorestyle: old style disclaimer to be removed.
+
 # This code is part of distribution Log-Report-Lexicon. Meta-POD processed
 # with OODoc into POD and HTML manual-pages.  See README.md
 # Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
@@ -15,8 +21,8 @@ use File::Find         ();
 sub _understand_file_format($) { $_[0] =~ qr/\.(?:gmo|mo|po)$/i }
 
 sub _find($$)
-{   my ($index, $name) = (shift, lc shift);
-    $index->{"$name.mo"} || $index->{"$name.gmo"} || $index->{"$name.po"};  # prefer mo
+{	my ($index, $name) = (shift, lc shift);
+	$index->{"$name.mo"} || $index->{"$name.gmo"} || $index->{"$name.po"};  # prefer mo
 }
 
 # On windows, other locale names are used.  They will get translated
@@ -24,21 +30,22 @@ sub _find($$)
 
 my $locale_unifier;
 if($^O eq 'MSWin32')
-{   require Log::Report::Win32Locale;
-    Log::Report::Win32Locale->import;
-    $locale_unifier = sub { iso_locale($_[0]) };
+{	require Log::Report::Win32Locale;
+	Log::Report::Win32Locale->import;
+	$locale_unifier = sub { iso_locale($_[0]) };
 }
 else
-{   # some UNIXes do not understand "POSIX"
-    $locale_unifier = sub { uc $_[0] eq 'POSIX' ? 'c' : lc $_[0] };
+{	# some UNIXes do not understand "POSIX"
+	$locale_unifier = sub { uc $_[0] eq 'POSIX' ? 'c' : lc $_[0] };
 }
 
+#--------------------
 =chapter NAME
 Log::Report::Lexicon::Index - search through available translation files
 
 =chapter SYNOPSIS
- my $index = Log::Report::Lexicon::Index->new($directory);
- my $fn    = $index->find('my-domain', 'nl_NL.utf-8');
+  my $index = Log::Report::Lexicon::Index->new($directory);
+  my $fn    = $index->find('my-domain', 'nl_NL.utf-8');
 
 =chapter DESCRIPTION
 This module handles the lookup of translation files for a whole
@@ -58,8 +65,8 @@ All files the $directory tree which are recognized as an translation table
 format which is understood will be listed.  Momentarily, those are:
 
 =over
-=item . files with extension "po", see M<Log::Report::Lexicon::POTcompact>
-=item . [0.993] files with extension "mo", see M<Log::Report::Lexicon::MOTcompact>
+=item . files with extension "po", see Log::Report::Lexicon::POTcompact
+=item . [0.993] files with extension "mo", see Log::Report::Lexicon::MOTcompact
 =back
 
 [0.99] Files which are in directories which start with a dot (hidden
@@ -67,11 +74,11 @@ directories) and files which start with a dot (hidden files) are skipped.
 =cut
 
 sub new($;@)
-{   my ($class, $dir) = (shift, shift);
-    bless {dir => $dir, @_}, $class;  # dir before first argument.
+{	my ($class, $dir) = (shift, shift);
+	bless +{ dir => $dir, @_ }, $class;  # dir before first argument.
 }
 
-#-------------------
+#--------------------
 =section Accessors
 
 =method directory
@@ -80,7 +87,7 @@ Returns the directory name.
 
 sub directory() { $_[0]->{dir} }
 
-#-------------------
+#--------------------
 =section Search
 
 =method index
@@ -90,28 +97,27 @@ with key-value pairs, where the key is the lower-cased version of the
 filename, and the value the case-sensitive version of the filename.
 =cut
 
-sub index() 
-{   my $self = shift;
-    return $self->{index} if exists $self->{index};
+sub index()
+{	my $self = shift;
+	return $self->{index} if exists $self->{index};
 
-    my $dir       = $self->directory;
-    my $strip_dir = qr!\Q$dir/!;
+	my $dir       = $self->directory;
+	my $strip_dir = qr!\Q$dir/!;
 
-    $self->{index} = {};
-    File::Find::find
-    ( +{ wanted   => sub
-           { -f && !m[/\.] && _understand_file_format($_) or return 1;
-             (my $key = $_) =~ s/$strip_dir//;
-             $self->addFile($key, $_);
-             1;
-           }
-       , follow      => 1
-       , no_chdir    => 1
-       , follow_skip => 2
-       } , $dir
-    );
+	$self->{index} = {};
+	File::Find::find( +{
+		wanted   => sub {
+			-f && !m[/\.] && _understand_file_format($_) or return 1;
+			(my $key = $_) =~ s/$strip_dir//;
+			$self->addFile($key, $_);
+			1;
+		},
+		follow      => 1,
+		no_chdir    => 1,
+		follow_skip => 2
+	}, $dir);
 
-    $self->{index};
+	$self->{index};
 }
 
 =method addFile $basename, [$absolute]
@@ -121,64 +127,64 @@ specified, the $absolute path will be calculated.
 =cut
 
 sub addFile($;$)
-{   my ($self, $base, $abs) = @_;
-    $abs ||= File::Spec->catfile($self->directory, $base);
-    $base =~ s!\\!/!g;  # dos->unix
-    $self->{index}{lc $base} = $abs;
+{	my ($self, $base, $abs) = @_;
+	$abs ||= File::Spec->catfile($self->directory, $base);
+	$base =~ s!\\!/!g;  # dos->unix
+	$self->{index}{lc $base} = $abs;
 }
 
 =method find $textdomain, $locale
 Lookup the best translation table, according to the rules described
 in chapter L</DETAILS>, below.
 
-Returned is a filename, or C<undef> if nothing is defined for the
+Returned is a filename, or undef if nothing is defined for the
 $locale (there is no default on this level).
 =cut
 
 sub find($$)
-{   my $self   = shift;
-    my $domain = lc shift;
-    my $locale = $locale_unifier->(shift);
+{	my $self   = shift;
+	my $domain = lc shift;
+	my $locale = $locale_unifier->(shift);
 
-    my $index = $self->index;
-    keys %$index or return undef;
+	my $index = $self->index;
+	keys %$index or return undef;
 
-    my ($lang, $terr, $cs, $modif) = parse_locale $locale;
-    unless(defined $lang)
-    {   defined $locale or $locale = '<undef>';
-        # avoid problem with recursion, not translatable!
-        print STDERR "illegal locale $locale, when looking for $domain";
-        return undef;
-    }
+	my ($lang, $terr, $cs, $modif) = parse_locale $locale;
+	unless(defined $lang)
+	{	defined $locale or $locale = '<undef>';
+		# avoid problem with recursion, not translatable!
+		print STDERR "illegal locale $locale, when looking for $domain";
+		return undef;
+	}
 
-    $terr  = defined $terr  ? '_'.$terr  : '';
-    $cs    = defined $cs    ? '.'.$cs    : '';
-    $modif = defined $modif ? '@'.$modif : '';
+	$terr  = defined $terr  ? '_'.$terr  : '';
+	$cs    = defined $cs    ? '.'.$cs    : '';
+	$modif = defined $modif ? '@'.$modif : '';
 
-    (my $normcs = $cs) =~ s/[^a-z0-9]//g;
-    if(length $normcs)
-    {   $normcs = "iso$normcs" if $normcs !~ /[^0-9-]/;
-        $normcs = '.'.$normcs;
-    }
+	(my $normcs = $cs) =~ s/[^a-z0-9]//g;
+	if(length $normcs)
+	{	$normcs = "iso$normcs" if $normcs !~ /[^0-9-]/;
+		$normcs = '.'.$normcs;
+	}
 
-    my $fn;
-    for my $f ("/lc_messages/$domain", "/$domain")
-    {   $fn
-        ||= _find($index, "$lang$terr$cs$modif$f")
-        ||  _find($index, "$lang$terr$normcs$modif$f")
-        ||  _find($index, "$lang$terr$modif$f")
-        ||  _find($index, "$lang$modif$f")
-        ||  _find($index, "$lang$f");
-    }
+	my $fn;
+	for my $f ("/lc_messages/$domain", "/$domain")
+	{	$fn
+		||= _find($index, "$lang$terr$cs$modif$f")
+		||  _find($index, "$lang$terr$normcs$modif$f")
+		||  _find($index, "$lang$terr$modif$f")
+		||  _find($index, "$lang$modif$f")
+		||  _find($index, "$lang$f");
+	}
 
-    $fn
-    || _find($index, "$domain/$lang$terr$cs$modif")
-    || _find($index, "$domain/$lang$terr$normcs$modif")
-    || _find($index, "$domain/$lang$terr$modif")
-    || _find($index, "$domain/$lang$cs$modif")
-    || _find($index, "$domain/$lang$normcs$modif")
-    || _find($index, "$domain/$lang$modif")
-    || _find($index, "$domain/$lang");
+	   $fn
+	|| _find($index, "$domain/$lang$terr$cs$modif")
+	|| _find($index, "$domain/$lang$terr$normcs$modif")
+	|| _find($index, "$domain/$lang$terr$modif")
+	|| _find($index, "$domain/$lang$cs$modif")
+	|| _find($index, "$domain/$lang$normcs$modif")
+	|| _find($index, "$domain/$lang$modif")
+	|| _find($index, "$domain/$lang");
 }
 
 =method list $domain, [$extension]
@@ -198,23 +204,22 @@ regular expression.
 =cut
 
 sub list($;$)
-{   my $self   = shift;
-    my $domain = lc shift;
-    my $filter = shift;
-    my $index  = $self->index;
-    my @list   = map $index->{$_}, grep m!\b\Q$domain\E\b!, keys %$index;
+{	my $self   = shift;
+	my $domain = lc shift;
+	my $filter = shift;
+	my $index  = $self->index;
+	my @list   = map $index->{$_}, grep m!\b\Q$domain\E\b!, keys %$index;
 
-    defined $filter
-        or return @list;
+	defined $filter
+		or return @list;
 
-    $filter    = qr/\.\Q$filter\E$/i
-        if defined $filter && ref $filter ne 'Regexp';
+	$filter    = qr/\.\Q$filter\E$/i
+		if defined $filter && ref $filter ne 'Regexp';
 
-    grep $_ =~ $filter, @list;
+	grep $_ =~ $filter, @list;
 }
 
-#-------------------------------------
-
+#--------------------
 =chapter DETAILS
 
 It's always complicated to find the lexicon files, because the perl
@@ -240,15 +245,15 @@ textdomain C<my-domain>.  The translation is made into C<nl-NL.utf-8>
 (locale for Dutch spoken in The Netherlands, utf-8 encoded text file).
 
 The default location for the translation table is under
- ~perl5.8.8/Some/Module/messages/
+  ~perl5.8.8/Some/Module/messages/
 
 for instance
- ~perl5.8.8/Some/Module/messages/nl-NL.utf-8/LC_MESSAGES/my-domain.po
+  ~perl5.8.8/Some/Module/messages/nl-NL.utf-8/LC_MESSAGES/my-domain.po
 
-There are alternatives, as described in M<Log::Report::Lexicon::Index>,
+There are alternatives, as described in Log::Report::Lexicon::Index,
 for instance
- ~perl5.8.8/Some/Module/messages/my-domain/nl-NL.utf-8.po
- ~perl5.8.8/Some/Module/messages/my-domain/nl.po
+  ~perl5.8.8/Some/Module/messages/my-domain/nl-NL.utf-8.po
+  ~perl5.8.8/Some/Module/messages/my-domain/nl.po
 
 =section Locale search
 

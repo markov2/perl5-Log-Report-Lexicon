@@ -1,6 +1,7 @@
-# This code is part of distribution Log-Report-Lexicon. Meta-POD processed
-# with OODoc into POD and HTML manual-pages.  See README.md
-# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
+#oodist: *** DO NOT USE THIS VERSION FOR PRODUCTION ***
+#oodist: This file contains OODoc-style documentation which will get stripped
+#oodist: during its release in the distribution.  You can use this file for
+#oodist: testing, however the code of this development version may be broken!
 
 package Log::Report::Translator::Context;
 
@@ -9,15 +10,16 @@ use strict;
 
 use Log::Report 'log-report-lexicon';
 
+#--------------------
 =chapter NAME
 Log::Report::Translator::Context - handle translation contexts
 
 =chapter SYNOPSIS
 
   # usually, the context information is in a separate file
-  textdomain 'my-domain'
-    , config => $filename;
-  
+  textdomain 'my-domain',
+    config => $filename;
+
 =chapter DESCRIPTION
 
 [Added in Log::Report v1.00]
@@ -30,23 +32,23 @@ For instance, two libraries used in the same application, or two
 componentent within a single library both want to used the same
 default text (which usually is very short)
 
-   char * t1 = pgettext('interface', 'None');
-   char * t2 = pgettext('selections', 'None');
+  char * t1 = pgettext('interface', 'None');
+  char * t2 = pgettext('selections', 'None');
 
 Some translation setups use the library name consequently as msgctxt.
 But, the name "context" is pretending much more power than the gettext
 libraries are capable of: it usually only behaves like a namespace.
 
-For M<Log::Report>, the power of "context" is extended with selecting
+For Log::Report, the power of "context" is extended with selecting
 between alternatives for the use of a msgid B<on the same spot>.
 
 For instance, the gender of the user of the website determines whether
 `he' or `she' needs to be used in the translation.  In this example,
 the gender is set as context keyword in the message:
 
-   my ($name, $sex) = ('Jack', 'male');
-   print __x"{name<gender} found his key", name => $name
-     , _context => "gender=$sex";
+  my ($name, $sex) = ('Jack', 'male');
+  print __x"{name<gender} found his key", name => $name,
+    _context => "gender=$sex";
 
 =chapter METHODS
 
@@ -60,82 +62,84 @@ the gender is set as context keyword in the message:
 
 sub new(@)  { my $class = shift; (bless {}, $class)->init({@_}) }
 sub init($)
-{   my ($self, $args) = @_;
-    $self->{LRTC_rules} = $self->_context_table($args->{rules} || {});
-    $self;
+{	my ($self, $args) = @_;
+	$self->{LRTC_rules} = $self->_context_table($args->{rules} || {});
+	$self;
 }
 
-#-------
+#--------------------
 =section Attributes
 
 =method rules
 Returns a HASH to the simplified context maps.
 =cut
 
-sub rules() {shift->{LRTC_rules}}
+sub rules() { $_[0]->{LRTC_rules} }
 
-#-------
+#--------------------
 =section Action
 
 =method ctxtFor $message, $lang, [$context]
 Returns a pair of the MSGID stripped from context markup, and the
 context evaluated into the msgctxt string.  The $message is a
-M<Log::Report::Message> object.  The $context is the default context
+Log::Report::Message object.  The $context is the default context
 for a certain textdomain.
 
   my ($msgid, $msgctxt) = $context->ctxtFor($msg, $lang, $context);
 
 =cut
 
+=error no context definition for `$tag' in `$msgid'
+=warning no value for tag `$tag' in the context
+=warning unknown alternative `$alt' for tag `$tag' in context of `$msgid'
+=cut
+
 sub _strip_ctxt_spec($)
-{   my $msgid = shift;
-    my @tags;
-    while($msgid =~ s/\{ ([^<}]*) \<(\w+) ([^}]*) \}/
-                      length "$1$3" ? "{$1$3}" : ''/xe)
-    {  push @tags, $2;
-    }
-    ($msgid, [sort @tags]);
+{	my $msgid = shift;
+	my @tags;
+	while($msgid =~ s/\{ ([^<}]*) \<(\w+) ([^}]*) \}/ length "$1$3" ? "{$1$3}" : ''/xe)
+	{	push @tags, $2;
+	}
+	($msgid, [sort @tags]);
 }
 
 sub ctxtFor($$;$)
-{   my ($self, $msg, $lang, $def_context) = @_;
-    my $rawid = $msg->msgid;
-    my ($msgid, $tags) = _strip_ctxt_spec $rawid;
-    @$tags or return ($msgid, undef);
+{	my ($self, $msg, $lang, $def_context) = @_;
+	my $rawid = $msg->msgid;
+	my ($msgid, $tags) = _strip_ctxt_spec $rawid;
+	@$tags or return ($msgid, undef);
 
-    my $maps = $self->rules;
-    $lang    =~ s/_.*//;
+	my $maps = $self->rules;
+	$lang    =~ s/_.*//;
 
-    my $msg_context = $self->needDecode($rawid, $msg->context || {});
-    $def_context  ||= {};
+	my $msg_context = $self->needDecode($rawid, $msg->context || {});
+	$def_context  ||= {};
 #use Data::Dumper;
 #warn "context = ", Dumper $msg, $msg_context, $def_context;
 
-    my @c;
-    foreach my $tag (@$tags)
-    {   my $map = $maps->{$tag}
-            or error __x"no context definition for `{tag}' in `{msgid}'"
-               , tag => $tag, msgid => $rawid;
+	my @c;
+	foreach my $tag (@$tags)
+	{	my $map = $maps->{$tag}
+			or error __x"no context definition for `{tag}' in `{msgid}'", tag => $tag, msgid => $rawid;
 
-        my $set = $map->{$lang} || $map->{default};
-        next if $set eq 'IGNORE';
+		my $set = $map->{$lang} || $map->{default};
+		next if $set eq 'IGNORE';
 
-        my $v   = $msg_context->{$tag} || $def_context->{$tag};
-        unless($v)
-        {   warning __x"no value for tag `{tag}' in the context", tag => $tag;
-            ($v) = keys %$set;
-        }
-        unless($set->{$v})
-        {   warning __x"unknown alternative `{alt}' for tag `{tag}' in context of `{msgid}'"
-               , alt => $v, tag => $tag, msgid => $rawid;
-            ($v) = keys %$set;
-        }
+		my $v   = $msg_context->{$tag} || $def_context->{$tag};
+		unless($v)
+		{	warning __x"no value for tag `{tag}' in the context", tag => $tag;
+			($v) = keys %$set;
+		}
+		unless($set->{$v})
+		{	warning __x"unknown alternative `{alt}' for tag `{tag}' in context of `{msgid}'", alt => $v, tag => $tag, msgid => $rawid;
+			($v) = keys %$set;
+		}
 
-        push @c, "$tag=$set->{$v}";
-    }
+		push @c, "$tag=$set->{$v}";
+	}
 
-    my $msgctxt = join ' ', sort @c;
-    ($msgid, $msgctxt);
+	my $msgctxt = join ' ', sort @c;
+	($msgid, $msgctxt);
 }
 
 =ci_method needDecode $source, STRING|ARRAY|HASH|PAIRS
@@ -143,80 +147,85 @@ Converts the context settings passed with the MSGID, into a HASH which will
 be matched to the context providers.
 =cut
 
-sub needDecode($@)
-{   my ($thing,  $source) = (shift, shift);
-    return +{@_} if @_ > 1;
-    my $c = shift;
-    return $c if !defined $c || ref $c eq 'HASH';
+=error tags value must have form `a=b', found `$this' in `$source'
+=cut
 
-    my %c;
-    foreach (ref $c eq 'ARRAY' ? @$c : (split /[\s,]+/, $c))
-    {   my ($kw, $val) = split /\=/, $_, 2;
-        defined $val
-            or error __x"tags value must have form `a=b', found `{this}' in `{source}'"
-              , this => $_, source => $source;
-        $c{$kw} = $val;
-    }
-    \%c;
+sub needDecode($@)
+{	my ($thing,  $source) = (shift, shift);
+	return +{@_} if @_ > 1;
+	my $c = shift;
+	return $c if !defined $c || ref $c eq 'HASH';
+
+	my %c;
+	foreach (ref $c eq 'ARRAY' ? @$c : (split /[\s,]+/, $c))
+	{	my ($kw, $val) = split /\=/, $_, 2;
+		defined $val
+			or error __x"tags value must have form `a=b', found `{this}' in `{source}'", this => $_, source => $source;
+		$c{$kw} = $val;
+	}
+	\%c;
 }
 
 =method expand $msgid, $language, %options
 Expand the context settings into all possible combinations which need
 translations in the PO file.  This may depend on the $language.
 The $msgid is used in error messages.
+
+=error unknown context tag '$tag' used in '$msgid'
 =cut
 
 sub expand($$@)
-{   my ($self, $raw, $lang) = @_;
-    my ($msgid, $tags) = _strip_ctxt_spec $raw;
+{	my ($self, $raw, $lang) = @_;
+	my ($msgid, $tags) = _strip_ctxt_spec $raw;
 
-    $lang =~ s/_.*//;
+	$lang =~ s/_.*//;
 
-    my $maps    = $self->rules;
-    my @options = [];
+	my $maps    = $self->rules;
+	my @options = [];
 
-    foreach my $tag (@$tags)
-    {   my $map = $maps->{$tag}
-            or error __x"unknown context tag '{tag}' used in '{msgid}'"
-              , tag => $tag, msgid => $msgid;
-        my $set = $map->{$lang} || $map->{default};
+	foreach my $tag (@$tags)
+	{	my $map = $maps->{$tag}
+			or error __x"unknown context tag '{tag}' used in '{msgid}'", tag => $tag, msgid => $msgid;
+		my $set = $map->{$lang} || $map->{default};
 
-        my %uniq   = map +("$tag=$_" => 1), values %$set;
-        my @oldopt = @options;
-        @options   = ();
+		my %uniq   = map +("$tag=$_" => 1), values %$set;
+		my @oldopt = @options;
+		@options   = ();
 
-        foreach my $alt (keys %uniq)
-        {   push @options, map +[ @$_, $alt ], @oldopt;
-        }
-    }
+		foreach my $alt (keys %uniq)
+		{	push @options, map +[ @$_, $alt ], @oldopt;
+		}
+	}
 
-    ($msgid, [sort map join(' ', @$_), @options]);
+	($msgid, [sort map join(' ', @$_), @options]);
 }
 
 sub _context_table($)
-{   my ($self, $rules) = @_;
-    my %rules;
-    foreach my $tag (keys %$rules)
-    {   my $d = $rules->{$tag};
-        $d = +{ alternatives => $d } if ref $d eq 'ARRAY';
-        my %simple;
-        my $default  = $d->{default} || {};           # default map
-        if(my $alt   = $d->{alternatives})            # simpelest map
-        {   $default = +{ map +($_ => $_), @$alt };
-        }
-        $simple{default} = $default;
-        foreach my $set (keys %$d)
-        {   next if $set eq 'default' || $set eq 'alternatives';
-            my %set = (%$default, %{$d->{$set}});
-            $simple{$_} = \%set for split /\,/, $set;  # table per lang
-        }
-        $rules{$tag} = \%simple;
-    }
+{	my ($self, $rules) = @_;
+	my %rules;
+	foreach my $tag (keys %$rules)
+	{	my $d = $rules->{$tag};
+		$d = +{ alternatives => $d } if ref $d eq 'ARRAY';
 
-    \%rules;
+		my %simple;
+		my $default  = $d->{default} || {};           # default map
+		if(my $alt   = $d->{alternatives})            # simpelest map
+		{	$default = +{ map +($_ => $_), @$alt };
+		}
+
+		$simple{default} = $default;
+		foreach my $set (keys %$d)
+		{	next if $set eq 'default' || $set eq 'alternatives';
+			my %set = (%$default, %{$d->{$set}});
+			$simple{$_} = \%set for split /\,/, $set;  # table per lang
+		}
+		$rules{$tag} = \%simple;
+	}
+
+	\%rules;
 }
 
-#------------
+#--------------------
 =chapter DETAILS
 
 The "contexts" concept in (GNU's version of) gettext, has a
@@ -228,8 +237,8 @@ For instance, two libraries used in the same application, or two
 componentent within a single library both want to used the same
 default text (which usually is very short)
 
-   char * t1 = pgettext('interface', 'None');
-   char * t2 = pgettext('selections', 'None');
+  char * t1 = pgettext('interface', 'None');
+  char * t2 = pgettext('selections', 'None');
 
 Some translation setups use the library name consequently as msgctxt.
 But, the name "context" is pretending much more power than the gettext
@@ -237,29 +246,29 @@ libraries are capable of: it usually only behaves like a namespace.
 
 =section Contexts in Log::Report
 
-For M<Log::Report>, the power of "context" is extended with selecting
+For Log::Report, the power of "context" is extended with selecting
 between alternatives for the use of a msgid B<on the same spot>.
 
 For instance, the gender of the user of the website determines whether
 `he' or `she' needs to be used in the translation.  In this example,
 the gender is set as context keyword in the message:
 
-   my ($name, $sex) = ('Jack', 'male');
-   print __x"{name<gender} found his key", name => $name
-     , _context => "gender=$sex";
+  my ($name, $sex) = ('Jack', 'male');
+  print __x"{name<gender} found his key", name => $name,
+    _context => "gender=$sex";
 
 This would also be possible in traditional gettext, although probably
 rarely used.  A complication is that the scripts to maintain the po
 tables are not too smart; do not understand complex code constructs.
 Probably this would beed needed:
 
-   if(sex==MALE)
-   {   printf pgettext('male', "%s found his key\n", name);
-   }
-   else
-   {   printf pgettext('female', "%s found her key\n", name);
-   }
-  
+  if(sex==MALE)
+  {   printf pgettext('male', "%s found his key\n", name);
+  }
+  else
+  {   printf pgettext('female', "%s found her key\n", name);
+  }
+
 
 =section Using context_rules
 
@@ -288,14 +297,14 @@ For instance, the gender of the user of the website determines whether
 `he' or `she' needs to be used.  In this example, the gender is set as
 context keyword in the message:
 
-   $name = 'Jack';
-   print __x"{name} found her key", name => $name;
+  $name = 'Jack';
+  print __x"{name} found her key", name => $name;
 
 You may try to solve this via:
 
-   my ($name, $gender) = ('Jack', 'male');
-   print __x"{name} found {personal} key", name => $name
-     , personal => ($gender eq 'male' ? 'his' : 'her');    # No!
+  my ($name, $gender) = ('Jack', 'male');
+  print __x"{name} found {personal} key", name => $name,
+    personal => ($gender eq 'male' ? 'his' : 'her');    # No!
 
 This does not translate!  For one, you would need to translate C<his> and
 C<her> to the language as well.  But in some languages, the differences
@@ -303,24 +312,24 @@ between addressed genders have more impact on the whole sentence.
 
 So, Log::Report translations add extra syntax:
 
-   my ($name, $gender) = ('Jack', 'male');
-   print __x"{name<gender} found her key", name => $name
-     , _context => "gender=$gender";
+  my ($name, $gender) = ('Jack', 'male');
+  print __x"{name<gender} found her key", name => $name,
+    _context => "gender=$gender";
 
 The C<gender> marking tells the translation table builder (xgettext-perl)
 and the translation handler that there is a context active.
 
 Now, the English PO-file has
 
-   # gender alternatives 'male' and 'female'
+  # gender alternatives 'male' and 'female'
 
-   msgctxt "gender=male"
-   msgid  "{name} found his key"
-   msgstr "{name} found his key"
+  msgctxt "gender=male"
+  msgid  "{name} found his key"
+  msgstr "{name} found his key"
 
-   msgctxt "gender=female"
-   msgid   "{name} found his key"
-   msgstr  "{name} found her key"
+  msgctxt "gender=female"
+  msgid   "{name} found his key"
+  msgstr  "{name} found her key"
 
 To make this work, both the application and the C<xgettext-perl> script
 must share information to understand which genders are available.  See
@@ -328,16 +337,16 @@ the section on "Configuration" below.
 
 Another example:
 
-   print __x"greetings{<style}";
-   # style alternatives 'formal' and 'informal'
+  print __x"greetings{<style}";
+  # style alternatives 'formal' and 'informal'
 
-   msgctxt "style=formal"
-   msgid   "greetings"
-   msgstr  "Dear Sir/Madam,"
+  msgctxt "style=formal"
+  msgid   "greetings"
+  msgstr  "Dear Sir/Madam,"
 
-   msgctxt "style=informal"
-   msgid   "greetings"
-   msgstr  "Hey buddy,"
+  msgctxt "style=informal"
+  msgid   "greetings"
+  msgstr  "Hey buddy,"
 
 As can be seen, the '<style' marking may be added inside the '{}' of
 a filled-in parameter, or may appear on its own.  These markings are
@@ -358,12 +367,12 @@ a HASH:
   my @context = (qw/gender=male agegroup=adult married=yes/);
   _context => \@context;
 
-Probably the 
+Probably the
   my %context = (gender => 'male', agegroup => 'adult', married => 'yes');
   my %context = qw/gender male  agegroup adult  married yes/;
   _context => \%context;
 
-Standard gettext only allows a single keyword (=string) 
+Standard gettext only allows a single keyword (=string)
 C<Log::Report> permits you to set-up a context for a whole
 text-domain, which means that multiple context rules may be active at
 any moment.
@@ -376,17 +385,17 @@ the log messages may need to show that domain name.  Of course, you can
 collect (or pass on) the hostname when throwing the error... something
 like this:
 
-   # can I access $vhost easily?
-   error __x"For {host}, login failed for {user}"
-      , host => $vhost->name, user => $user;
+  # can I access $vhost easily?
+  error __x"For {host}, login failed for {user}",
+        host => $vhost->name, user => $user;
 
 Via contexts:
 
-   # when you know the vhost: (max once per request)
-   textdomain->setContext(host => $vhost->name);  # or updateContext
+  # when you know the vhost: (max once per request)
+  textdomain->setContext(host => $vhost->name);  # or updateContext
 
-   # until you reconfigure the context
-   error __x"For {_context.host}, login failed for {user}", user => $user;
+  # until you reconfigure the context
+  error __x"For {_context.host}, login failed for {user}", user => $user;
 
 The context values are always available for interpolation.
 
@@ -414,14 +423,14 @@ chosen.
 In the simplest form, the msgctxt field contains a single keyword
 (not containing a comma).
 
-   msgctxt "gender=male"
+  msgctxt "gender=male"
 
 But you can do more.  B<Be warned> that most (all?) existing tools
 which smartly edit PO-files do not understand these constructs: they
 see the msgctxt as dump string without meaning.
 
-   msgctxt "agegroup=baby,agegroup=grandparent" # baby OR grandparent
-   msgctxt "gender=male agegroup=adult"         # both male AND adult
+  msgctxt "agegroup=baby,agegroup=grandparent" # baby OR grandparent
+  msgctxt "gender=male agegroup=adult"         # both male AND adult
 
 So, a comma separated list of alternatives.  If any matches, then the
 rule is selected.
@@ -443,8 +452,8 @@ See M<Log::Report::Domain::readConfig()>.
 
 Example of such configuration file: (JSON syntax and Perl syntax)
 
-  === JSON ===                    ==== Perl ===
-  {                               {
+  === JSON ===                    ==== Perl ==   =
+ {{
      "context_rules" : {             context_rules => {
         "gender" : [                    gender => [
            "male",                         'male',
@@ -506,8 +515,8 @@ the third gender.
 If you are not interested for a certain tag, then put it on 'IGNORE'
 as default or for your language.
 
-         "default" : "IGNORE",           default => 'IGNORE'
-         "nl": "IGNORE"                  nl => 'IGNORE'
+  "default" : "IGNORE",           default => 'IGNORE'
+  "nl": "IGNORE"                  nl => 'IGNORE'
 =cut
 
 1;
