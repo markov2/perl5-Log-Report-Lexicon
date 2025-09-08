@@ -294,8 +294,8 @@ Returns whether the translation needs human inspection.
 sub fuzzy(;$) { my $self = shift; @_ ? $self->{fuzzy} = shift : $self->{fuzzy} }
 
 =method format $language | <PAIRS|ARRAY|HASH>
-When one $language is specified, it looks whether a $language C<-format> or
-C<no->$languageC<-format> is present in the line of FLAGS.  This will return
+When one $language is specified, it looks whether a "language-format" or
+"no-language-format" is present in the line of FLAGS.  This will return
 C<1> (true) in the first case, C<0> (false) in the second case.  It will
 return undef (also false) in case that both are not present.
 

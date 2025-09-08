@@ -49,6 +49,10 @@ later you will probably also need bind_textdomain_codeset() which is
 also only available on certain systems.
 
 =chapter METHODS
+
+=section Translating
+
+=method translate $msg, $lang, $ctxt
 =cut
 
 sub translate($;$$)

@@ -288,7 +288,7 @@ to avoid using this: use M<msgid()> for lookup and M<add()> for adding
 translations.
 
 =method filename
-Returns the $filename, as derived from M<read()> or specified during
+Returns the filename, as derived from M<read()> or specified during
 initiation with M<new(filename)>.
 =cut
 

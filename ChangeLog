@@ -16,7 +16,7 @@ bugs:
 wishlist:
 	- let xgettext-perl produce mo files as well.
 
-version 1.14:
+version 1.14: Mon  8 Sep 15:31:33 CEST 2025
 
 	Changes:
 	- require Perl 5.16 (2012)

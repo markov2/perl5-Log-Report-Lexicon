@@ -145,8 +145,8 @@ sub charset() { $_[0]->{LRTP_charset} }
 
 #--------------------
 =section Translating
-=cut
 
+=method translate $msg, $lang, $context
 =error unknown translation table extension '$ext' in $filename
 =info read table $filename as $class for $dname in $locale
 =cut

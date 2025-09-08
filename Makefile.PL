@@ -14,13 +14,13 @@ my %oodist   = (
 	email         => "markov\@cpan.org",
 
 	include  => [
- 		'String-Print',
- 		'Log-Report-Optional',
+		'../String-Print',
+		'../Log-Report-Optional',
 	],
 
 	use      => [
-		'Log-Report',
- 		'Log-Report-Template',
+		'../Log-Report',
+		'../Log-Report-Template',
 	],
 
 	parser   => {
