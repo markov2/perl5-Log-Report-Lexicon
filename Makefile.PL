@@ -115,6 +115,11 @@ WriteMakefile
 		x_oodist => \%oodist,
 	};
 
+
+sub MY::postamble { <<'__POSTAMBLE' }
 # for translation tables
-#linkext::
-#	bin/xgettext-perl --mode=VERBOSE -p lib/Log/Report/messages lib bin
+
+linkext::
+	bin/xgettext-perl --mode=VERBOSE -p lib/Log/Report/messages lib bin
+
+__POSTAMBLE

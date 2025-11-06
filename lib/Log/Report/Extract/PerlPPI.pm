@@ -166,7 +166,8 @@ NODE:
 
 		# Take domains which are as first parameter after 'use Log::Report'
 		if($node->isa('PPI::Statement::Include') && $node->type eq 'use')
-		{	my $module = $node->module;
+		{	my $module = $node->module or next NODE;
+
 			if($module eq 'utf8')
 			{	$charset = 'utf-8';
 			}
