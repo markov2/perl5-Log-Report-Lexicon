@@ -10,7 +10,8 @@ use warnings;
 use strict;
 
 use Log::Report 'log-report-lexicon';
-use PPI;
+use PPI    ();
+use Encode qw/decode/;
 
 # See Log::Report translation markup functions
 my %msgids = (
@@ -120,11 +121,11 @@ Update the domains mentioned in the $filename.  All textdomains defined
 in the file will get updated automatically, but not written before
 all files where processed.
 
-=option  charset STRING
+=option  charset $charset
 =default charset 'iso-8859-1'
-=cut
+PPI v1.284 still does not support unicode by itself, so you need to help
+it by specifying the character-set which is used in the file.
 
-=error PPI only supports iso-8859-1 (latin-1) on the moment
 =fault cannot read perl from file $filename: $!
 =info no Perl in file $filename
 =info processing file $fn in $charset
@@ -135,11 +136,7 @@ all files where processed.
 
 sub process($@)
 {	my ($self, $fn, %opts) = @_;
-
 	my $charset = $opts{charset} || 'iso-8859-1';
-
-#   $charset eq 'iso-8859-1'
-#       or error __x"PPI only supports iso-8859-1 (latin-1) on the moment";
 
 	my $doc = PPI::Document->new($fn, readonly => 1)
 		or fault __x"cannot read perl from file {filename}", filename => $fn;
@@ -168,24 +165,25 @@ NODE:
 		}
 
 		# Take domains which are as first parameter after 'use Log::Report'
-		if($node->isa('PPI::Statement::Include'))
-		{	$node->type eq 'use'
-				or next NODE;
+		if($node->isa('PPI::Statement::Include') && $node->type eq 'use')
+		{	my $module = $node->module;
+			if($module eq 'utf8')
+			{	$charset = 'utf-8';
+			}
+			elsif($module->isa('Log::Report') || $module->isa('Dancer2::Plugin::LogReport'))
+			{	$include++;
+				if(my $dom = ($node->arguments)[0]) {
+					$domain
+				   	= $dom->isa('PPI::Token::Quote')            ? $dom->string
+				   	: $dom->isa('PPI::Token::QuoteLike::Words') ? ($dom->literal)[0]
+				   	: undef;
+				}
 
-			my $module = $node->module;
-			$module eq 'Log::Report' || $module eq 'Dancer2::Plugin::LogReport'
-				or next NODE;
-
-			$include++;
-			if(my $dom = ($node->arguments)[0]) {
-				$domain
-				   = $dom->isa('PPI::Token::Quote')            ? $dom->string
-				   : $dom->isa('PPI::Token::QuoteLike::Words') ? ($dom->literal)[0]
-				   : undef;
+				$self->_reset($domain, $fn)
+					if defined $domain;
 			}
 
-			$self->_reset($domain, $fn)
-				if defined $domain;
+			next NODE;
 		}
 
 		$node->find_any( sub {
@@ -207,10 +205,13 @@ NODE:
 			$domain ne 'log-report' || ! $node->parent->isa('PPI::Statement::Sub')
 				or return 0;
 
-			my @msgids = $self->_get($node, $domain, $word, $def)
+			my @raw_msgids = $self->_get($node, $domain, $word, $def)
 				or return 0;
 
-			my ($nr_msgids, $has_count, $has_opts, $has_vars,$do_split) = @$def;
+			# PPI does not understand utf-8 :-(
+			my @msgids = map decode($charset, $_), @raw_msgids;
+
+			my ($nr_msgids, $has_count, $has_opts, $has_vars, $do_split) = @$def;
 
 			my $line = $node->location->[0];
 			unless($domain)

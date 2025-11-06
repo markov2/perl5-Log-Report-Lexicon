@@ -18,6 +18,9 @@ wishlist:
 
 version 1.15:
 
+	Changes:
+	- auto-detects (and applies) "use utf8", still not supported by PPI.
+
 	Improvements:
 	- remove double dependency on Test::More
 	  rt.cpan.org#171438 [Petr Pisar]
