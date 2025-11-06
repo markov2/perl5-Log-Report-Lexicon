@@ -61,7 +61,6 @@ my %prereq  = (
 	'File::Find'              => 0,
 	'File::Spec'              => 0,
 	'File::Temp'              => 0,
-	'IO::File'                => 0,
 	'List::Util'              => 0,
 	'Scalar::Util'            => 0,
 	'Log::Report'             => 1.40,

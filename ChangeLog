@@ -21,6 +21,8 @@ version 1.15:
 	Improvements:
 	- remove double dependency on Test::More
 	  rt.cpan.org#171438 [Petr Pisar]
+	- remove dependency on IO::File, not used
+	  rt.cpan.org#171438 [Petr Pisar]
 
 version 1.14: Mon  8 Sep 15:31:33 CEST 2025
 
