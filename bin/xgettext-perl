@@ -5,7 +5,7 @@
 use warnings;
 use strict;
 
-use Log::Report 'log-report';
+use Log::Report 'log-report-lexicon';
 
 use Getopt::Long qw/:config no_ignore_case bundling/;
 use File::Find   qw/find/;
@@ -124,9 +124,14 @@ else
 
 	$fn_match ||= qr/\.p[lm]$/i;
 	foreach my $filename (@filenames)
-	{   unless($filename =~ $fn_match)
-		{   info __x"skipping (not perl) {fn}", fn => $filename;
-			next;
+	{   if($filename !~ $fn_match)
+		{	open my ($fh), '<', $filename
+				or warning(__x"skipping missing file {fn}", fn => $filename), next;
+
+			$fh->getline =~ m!\bperl\b|\bperl[0-9]!
+				or info(__x"skipping (not perl) {fn}", fn => $filename), next;
+
+			$fh->close;
 		}
 		$extr->process($filename, charset => $char_in);
 		$processed{$filename}++;
