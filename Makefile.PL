@@ -25,7 +25,11 @@ my %oodist   = (
 
 	parser   => {
 		syntax         => 'markov',
-		skip_links     => [ ],
+		skip_links     => [
+			'Locale::PO',
+			'Win32::Locale',
+			'Win32::Codepage',
+		],
 		pmhead         => undef,
 	},
 
@@ -51,7 +55,6 @@ my %oodist   = (
 );
 
 my %prereq  = (
-	'Test::More'              => '0.86',
 	'Data::Dumper'            => 0,
 	'Fcntl'                   => 0,
 	'File::Basename'          => 0,
