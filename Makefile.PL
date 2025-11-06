@@ -119,7 +119,7 @@ WriteMakefile
 sub MY::postamble { <<'__POSTAMBLE' }
 # for translation tables
 
-linkext::
+messages::
 	bin/xgettext-perl --mode=VERBOSE -p lib/Log/Report/messages lib bin
 
 __POSTAMBLE

@@ -16,7 +16,7 @@ bugs:
 wishlist:
 	- let xgettext-perl produce mo files as well.
 
-version 1.15:
+version 1.15: Thu  6 Nov 11:05:27 CET 2025
 
 	Changes:
 	- auto-detects (and applies) "use utf8", still not supported by PPI.

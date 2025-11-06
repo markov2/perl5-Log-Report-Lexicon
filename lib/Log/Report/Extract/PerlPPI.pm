@@ -171,7 +171,7 @@ NODE:
 			if($module eq 'utf8')
 			{	$charset = 'utf-8';
 			}
-			elsif($module->isa('Log::Report') || $module->isa('Dancer2::Plugin::LogReport'))
+			elsif($module eq 'Log::Report' || $module eq 'Dancer2::Plugin::LogReport')
 			{	$include++;
 				if(my $dom = ($node->arguments)[0]) {
 					$domain
