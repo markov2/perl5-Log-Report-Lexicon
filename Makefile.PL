@@ -54,19 +54,19 @@ my %oodist   = (
 	],
 );
 
-my %prereq  = (
+my %requires = (
 	'Data::Dumper'            => 0,
+	'Encode'                  => 0,
 	'Fcntl'                   => 0,
 	'File::Basename'          => 0,
 	'File::Find'              => 0,
 	'File::Spec'              => 0,
 	'File::Temp'              => 0,
 	'List::Util'              => 0,
-	'Scalar::Util'            => 0,
 	'Log::Report'             => 1.40,
 	'Pod::Usage'              => 0,
 	'POSIX'                   => 0,
-	'Encode'                  => 0,
+	'Scalar::Util'            => 0,
 
   	# sometimes needed, dependencies too large
   	# PPI
@@ -79,9 +79,7 @@ $prereq{ 'Win32::TieRegistry' } = 0.24
 WriteMakefile
 	NAME      => 'Log::Report::Lexicon',
 	VERSION   => $version,
-	PREREQ_PM => \%prereq,
 	EXE_FILES => [ 'bin/xgettext-perl' ],
-
 	AUTHOR    => 'Mark Overmeer <markov@cpan.org>',
 	ABSTRACT  => 'Log::Report translation table management',
 	LICENSE   => 'perl_5',
@@ -94,20 +92,26 @@ WriteMakefile
 				url  => "$git.git",
 				web  => $git,
 			},
+			bugtracker => {
+				web  => "$git/issues",
+			},
 			homepage => $homepage,
 			license  => [ 'http//dev.perl.org/licenses/' ],
 		},
 		prereqs => {
+			runtime => {
+				requires => \%requires,
+			},
 			develop => {
 				requires => {
 					'OODoc' => '3.00',
-				}
+				},
 			},
 			test => {
 				requires => {
 					'Test::More' => 1.00,
 					'Test::Pod'  => 1.00,
-				}
+				},
 			},
 		},
 
@@ -119,7 +123,7 @@ WriteMakefile
 sub MY::postamble { <<'__POSTAMBLE' }
 
 # for translation tables
-messages::
+lexicon::
 	bin/xgettext-perl --mode=VERBOSE -p lib/Log/Report/messages lib bin
 
 __POSTAMBLE
