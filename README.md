@@ -2,6 +2,7 @@
 
   * My extended documentation: <http://perl.overmeer.net/CPAN/>
   * Development via GitHub: <https://github.com/markov2/perl5-Log-Report-Lexicon>
+  * Sponsor me: <https://markov.solutions/sponsor/index-en.html>
   * Download from CPAN: <ftp://ftp.cpan.org/pub/CPAN/authors/id/M/MA/MARKOV/>
   * Indexed from CPAN: <https://metacpan.org/release/Log-Report-Lexicon>
 
@@ -10,6 +11,15 @@ translations.  If you do not need translations, you do not need to
 install this module.  When you use "Log::Report" and need to add
 translations, it may be very little work: when you nicely wrote texts
 in the advised message
+
+## Installing
+
+On github, you can find the processed version for each release.  But the
+better source is CPAN; to get it installed simply run:
+
+```sh
+   cpan -i Log::Report::Lexicon
+```
 
 ## Development &rarr; Release
 
@@ -24,13 +34,6 @@ existed, sorry for the confusion)
 
 Clone from github for the "raw" version.  For instance, when you want
 to contribute a new feature.
-
-On github, you can find the processed version for each release.  But the
-better source is CPAN; to get it installed simply run:
-
-```sh
-   cpan -i Log::Report::Lexicon
-```
 
 ## Contributing
 

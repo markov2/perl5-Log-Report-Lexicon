@@ -55,7 +55,7 @@ Read the MOT table information from $filename.
 The character-set which is used for the file.  When not specified, it is
 taken from the "Content-Type" field in the PO-file.
 
-=error unsupported explicit charset $charset for $fn
+=error unsupported explicit charset $charset for $fn.
 =fault cannot read mo from file $fn: $!
 =fault cannot read magic from $fn: $!
 =error unsupported file type (magic number is $magic)
@@ -68,9 +68,9 @@ taken from the "Content-Type" field in the PO-file.
 =fault cannot read msgids from $fn, need $size at $loc: $!
 =fault cannot seek to $loc in $fn for transl strings: $!
 =fault cannot read translations from $fn, need $size at $loc: $!
-=error the header is not the first entry, needed for charset in $fn
-=error cannot detect charset in $fn
-=error unsupported charset $charset in $fn
+=error the header is not the first entry, needed for charset in $fn.
+=error cannot detect charset in $fn.
+=error unsupported charset $charset in $fn.
 =cut
 
 sub read($@)
@@ -83,7 +83,7 @@ sub read($@)
 	my $enc;
 	if(defined $charset)
 	{	$enc = find_encoding($charset)
-			or error __x"unsupported explicit charset {charset} for {fn}", charset => $charset, fn => $fn;
+			or error __x"unsupported explicit charset {charset} for {fn}.", charset => $charset, fn => $fn;
 	}
 
 	my (%index, %locs);
@@ -109,7 +109,7 @@ sub read($@)
 	my $byteorder
 	  = $magic eq pack('V', MAGIC_NUMBER) ? 'V'
 	  : $magic eq pack('N', MAGIC_NUMBER) ? 'N'
-	  :   error __x"unsupported file type (magic number is {magic%x})", magic => $magic;
+	  :    error __x"unsupported file type (magic number is {magic%x})", magic => $magic;
 
 	# The superblock contains pointers to strings
 	CORE::read $fh, $superblock, 6*4  # 6 times a 32 bit int
@@ -171,15 +171,15 @@ sub read($@)
 
 		unless(defined $charset)
 		{	$msgid_b eq ''
-				or error __x"the header is not the first entry, needed for charset in {fn}", fn => $fn;
+				or error __x"the header is not the first entry, needed for charset in {fn}.", fn => $fn;
 
 			$charset = $msgstr_b =~ m/^content-type:.*?charset=["']?([\w-]+)/mi ? $1
-			  : error __x"cannot detect charset in {fn}", fn => $fn;
+			  : error __x"cannot detect charset in {fn}.", fn => $fn;
 
 			trace "auto-detected charset $charset for $fn";
 
 			$enc = find_encoding($charset)
-				or error __x"unsupported charset {charset} in {fn}", charset => $charset, fn => $fn;
+				or error __x"unsupported charset {charset} in {fn}.", charset => $charset, fn => $fn;
 		}
 
 		my $msgid   = $enc->decode($msgid_b);

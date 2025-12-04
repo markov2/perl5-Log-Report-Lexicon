@@ -2,11 +2,6 @@
 #oodist: This file contains OODoc-style documentation which will get stripped
 #oodist: during its release in the distribution.  You can use this file for
 #oodist: testing, however the code of this development version may be broken!
-#oorestyle: old style disclaimer to be removed.
-
-# This code is part of distribution Log-Report-Lexicon. Meta-POD processed
-# with OODoc into POD and HTML manual-pages.  See README.md
-# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
 
 package Log::Report::Translator::POT;
 use base 'Log::Report::Translator';
@@ -39,7 +34,7 @@ Log::Report::Translator::POT - translation based on POT files
 =chapter SYNOPSIS
   # internal use
   my $msg = Log::Report::Message->new(
-	_msgid  => "Hello World\n",
+    _msgid  => "Hello World\n",
     _domain => 'my-domain',
   );
 
@@ -65,11 +60,11 @@ than Log::Report::Lexicon::PO.
 
 =c_method new %options
 
-=option  lexicons DIRECTORY
+=option  lexicons $directory
 =default lexicons <see text>
-The DIRECTORY where the translations can be found.  See
+The $directory where the translations can be found.  See
 Log::Report::Lexicon::Index for the expected structure of such
-DIRECTORY.
+directory.
 
 The default is based on the location of the module which instantiates
 this translator.  The filename of the module is stripped from its C<.pm>
@@ -88,9 +83,7 @@ as defined in the header of each PO file.
     translator => Log::Report::Translator::POT->new;
 
   # lexicon now in xxx/perl5.8.8/My/Module/messages/
-=cut
 
-=error You have to upgrade Log::Report::Lexicon to at least 1.00
 =cut
 
 sub new(@)
@@ -105,9 +98,6 @@ sub init($)
 
 	my $lex = delete $args->{lexicons} || delete $args->{lexicon} ||
 		(ref $self eq __PACKAGE__ ? [] : _fn_to_lexdir $args->{callerfn});
-
-	+($Log::Report::Lexicon::Index::VERSION || 999) >= 1.00
-		or error __x"You have to upgrade Log::Report::Lexicon to at least 1.00";
 
 	my @lex;
 	foreach my $dir (ref $lex eq 'ARRAY' ? @$lex : $lex)
@@ -147,8 +137,8 @@ sub charset() { $_[0]->{LRTP_charset} }
 =section Translating
 
 =method translate $msg, $lang, $context
-=error unknown translation table extension '$ext' in $filename
-=info read table $filename as $class for $dname in $locale
+=error unknown translation table extension '$ext' in $file.
+=info read table $file as $class for $dname in $locale.
 =cut
 
 sub translate($;$$)
@@ -185,9 +175,9 @@ sub load($$)
 		my $class
 		  = $ext eq 'mo' ? 'Log::Report::Lexicon::MOTcompact'
 		  : $ext eq 'po' ? 'Log::Report::Lexicon::POTcompact'
-		  :     error __x"unknown translation table extension '{ext}' in {filename}", ext => $ext, filename => $fn;
+		  :     error __x"unknown translation table extension '{ext}' in {file}.", ext => $ext, file => $fn;
 
-		info __x"read table {filename} as {class} for {dname} in {locale}", filename => $fn, class => $class, dname => $dname, locale => $locale
+		info __x"read table {file} as {class} for {dname} in {locale}.", file => $fn, class => $class, dname => $dname, locale => $locale
 			if $dname ne 'log-report';  # avoid recursion
 
 		eval "require $class" or panic $@;

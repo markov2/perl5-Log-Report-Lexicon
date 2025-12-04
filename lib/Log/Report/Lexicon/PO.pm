@@ -33,21 +33,21 @@ records are kept in a POT file, implemented in Log::Report::Lexicon::POT.
 
 =c_method new %options
 
-=requires msgid STRING
+=requires msgid $msgid
 
-=option   msgid_plural STRING
+=option   msgid_plural $msgid
 =default  msgid_plural undef
 
-=option   msgstr STRING|ARRAY-OF-STRING
+=option   msgstr $translation|\@translations
 =default  msgstr "" or []
-The translations for the msgid.  When msgid_plural is defined, then an
+The @translations for the P<msgid>.  When P<msgid_plural> is defined, then an
 ARRAY must be provided.
 
-=option   msgctxt STRING
+=option   msgctxt $context
 =default  msgctxt undef
-Context string: text around the msgid itself.
+Context string: specifies where the P<msgid> belongs.
 
-=option   comment PARAGRAPH
+=option   comment \@text
 =default  comment []
 Translator added comments.
 See M<addComment()>.
@@ -57,15 +57,15 @@ See M<addComment()>.
 The string is not yet translated, some smart guesses may have been made.
 See M<fuzzy()>.
 
-=option   automatic PARAGRAPH
+=option   automatic \@text
 =default  automatic ""
 Automatically added comments.
 See M<addAutomatic()>.
 
-=option   references STRING|ARRAY-OF-LOCATIONS
+=option   references $locations|\@locations
 =default  references []
-The STRING is a blank separated list of LOCATIONS.
-LOCATIONs are of the  form C<filename:linenumber>, for
+As SCALAR, this contains a blank separated list of @locations.
+The @locations are of the  form C<filename:linenumber>, for
 instance C<lib/Foo.pm:42>
 See M<addReferences()>
 
@@ -74,7 +74,7 @@ See M<addReferences()>
 See M<format()>.  Either an ARRAY with PAIRS or a HASH with that same
 information.
 
-=error no msgid defined for PO
+=error no msgid defined for PO.
 =cut
 
 sub new(@)
@@ -85,7 +85,7 @@ sub new(@)
 sub init($)
 {	my ($self, $args) = @_;
 	defined($self->{msgid} = delete $args->{msgid})
-		or error __"no msgid defined for PO";
+		or error __"no msgid defined for PO.";
 
 	$self->{plural}  = delete $args->{msgid_plural};
 	$self->{msgstr}  = delete $args->{msgstr};
@@ -112,7 +112,7 @@ sub _fast_new($) { bless $_[1], $_[0] }
 Returns the actual msgid, which cannot be undef.
 
 =method msgctxt
-Returns the message context, if provided.
+Returns the message context string, if provided.
 =cut
 
 sub msgid()   { $_[0]->{msgid} }
@@ -134,26 +134,23 @@ sub plural(;$)
 	$self->{plural} = shift;
 }
 
-=method msgstr [$index, [STRING]]
-With a STRING, a new translation will be set.  Without STRING, a
-lookup will take place.  When no plural is defined, the $index is
-ignored.
+=method msgstr [$index, [$translation]]
+Returns a $translation, optionally after setting it.
+When no plural is defined, the $index is ignored.
 =cut
 
 sub msgstr($;$)
 {	my $self = shift;
 	my $m    = $self->{msgstr};
 
-	unless($self->{plural})
-	{	$self->{msgstr} = $_[1] if @_==2;
-		return $m;
-	}
+	$self->{plural}
+		or return @_==2 ? $self->{msgstr} = $_[1] : $m;
 
 	my $index    = shift || 0;
 	@_ ? $m->[$index] = shift : $m->[$index];
 }
 
-=method comment [LIST|ARRAY|STRING]
+=method comment [@lines|\@lines|$text]
 Returns a STRING which contains the cleaned paragraph of translator's
 comment.  If an argument is specified, it will replace the current
 comment.
@@ -166,7 +163,7 @@ sub comment(@)
 	$self->addComment(@_);
 }
 
-=method addComment LIST|ARRAY|STRING
+=method addComment @lines|\@lines|$text
 Add multiple lines to the translator's comment block.  Returns an
 empty string if there are no comments.
 =cut
@@ -187,7 +184,7 @@ sub addComment(@)
 	$self->{comment} = $comment;
 }
 
-=method automatic [LIST|ARRAY|STRING]
+=method automatic [@lines|\@lines|$text]
 Returns a STRING which contains the cleaned paragraph of automatically
 added comments.  If an argument is specified, it will replace the current
 comment.
@@ -200,7 +197,7 @@ sub automatic(@)
 	$self->addAutomatic(@_);
 }
 
-=method addAutomatic LIST|ARRAY|STRING
+=method addAutomatic @lines|\@lines|$text
 Add multiple lines to the translator's comment block.  Returns an
 empty string if there are no comments.
 =cut
@@ -219,10 +216,9 @@ sub addAutomatic(@)
 	$self->{automatic} = $auto;
 }
 
-=method references [STRING|LIST|ARRAY]
-Returns an unsorted list of LOCATIONS.  When options are specified,
+=method references [$locations|@locations|\@locations]
+Returns an unsorted LIST of @locations.  When data are specified,
 then those will be used to replace all currently defined references.
-Returns the unsorted LIST of references.
 =cut
 
 sub references(@)
@@ -235,9 +231,9 @@ sub references(@)
 	keys %{$self->{refs}};
 }
 
-=method addReferences STRING|LIST|ARRAY
-The STRING is a blank separated list of LOCATIONS.  The LIST and
-ARRAY contain separate LOCATIONs.  A LOCATION is of the form
+=method addReferences $locations|@locations|\@locations
+A single scalar contains a blank separated list of @locations.  The LIST
+and ARRAY contain separate @locations.  A LOCATION is of the form
 C<filename:linenumber>.  Returns the internal HASH with references.
 =cut
 

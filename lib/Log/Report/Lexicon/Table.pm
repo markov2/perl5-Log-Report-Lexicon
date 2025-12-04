@@ -68,8 +68,8 @@ Returns undef when not defined.
 Returns the translated string for $msgid.  When not specified, $count is 1.
 =cut
 
-sub msgid($;$)   {panic "not implemented"}
-sub msgstr($;$$) {panic "not implemented"}
+sub msgid($;$)   { panic "not implemented" }
+sub msgstr($;$$) { panic "not implemented" }
 
 #--------------------
 =subsection Administration
@@ -79,7 +79,7 @@ Add the information from a $po into this POT.  If the msgid of the $po
 is already known, that is an error.
 =cut
 
-sub add($)      {panic "not implemented"}
+sub add($)       { panic "not implemented" }
 
 =method translations [$active]
 Returns a list with all defined Log::Report::Lexicon::PO objects. When
@@ -89,18 +89,18 @@ references are returned.
 =error only acceptable parameter is 'ACTIVE'
 =cut
 
-sub translations(;$) {panic "not implemented"}
+sub translations(;$) { panic "not implemented" }
 
 =method pluralIndex $count
 Returns the msgstr index used to translate a value of $count.
 
-=error there is no Plural-Forms field in the header, but needed
+=error there is no Plural-Forms field in the header, but needed.
 =cut
 
 sub pluralIndex($)
 {	my ($self, $count) = @_;
 	my $algo = $self->{algo}
-		or error __x"there is no Plural-Forms field in the header, but needed";
+		or error __x"there is no Plural-Forms field in the header, but needed.";
 
 	$algo->($count);
 }
@@ -114,7 +114,7 @@ when not used.
 A full list of plural forms per language can be found at
 L<https://docs.translatehouse.org/projects/localization-guide/en/latest/l10n/pluralforms.html>
 
-=error invalid plural-form algorithm '$alg'
+=error invalid plural-form algorithm '$alg'.
 =cut
 
 sub setupPluralAlgorithm()
@@ -124,7 +124,7 @@ sub setupPluralAlgorithm()
 	my $alg   = $forms =~ m/plural\=([n%!=><\s\d|&?:()]+)/ ? $1 : "n!=1";
 	$alg =~ s/\bn\b/(\$_[0])/g;
 	my $code  = eval "sub(\$) {$alg}";
-	$@ and error __x"invalid plural-form algorithm '{alg}'", alg => $alg;
+	$@ and error __x"invalid plural-form algorithm '{alg}'.", alg => $alg;
 	$self->{algo}     = $code;
 
 	$self->{nplurals} = $forms =~ m/\bnplurals\=(\d+)/ ? $1 : 2;

@@ -2,12 +2,6 @@
 #oodist: This file contains OODoc-style documentation which will get stripped
 #oodist: during its release in the distribution.  You can use this file for
 #oodist: testing, however the code of this development version may be broken!
-#oorestyle: old style disclaimer to be removed.
-#oorestyle: not found P for method filename($filename)
-
-# This code is part of distribution Log-Report-Lexicon. Meta-POD processed
-# with OODoc into POD and HTML manual-pages.  See README.md
-# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
 
 package Log::Report::Lexicon::POT;
 use base 'Log::Report::Lexicon::Table';

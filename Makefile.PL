@@ -73,7 +73,7 @@ my %requires = (
   	# Locale::gettext
 );
 
-$prereq{ 'Win32::TieRegistry' } = 0.24
+$requires{'Win32::TieRegistry'} = 0.24
     if $^O eq 'MSWin32';
 
 WriteMakefile

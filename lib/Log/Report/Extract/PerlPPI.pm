@@ -10,6 +10,7 @@ use warnings;
 use strict;
 
 use Log::Report 'log-report-lexicon';
+
 use PPI    ();
 use Encode qw/decode/;
 
@@ -37,6 +38,7 @@ my $quote_mistake;
 Log::Report::Extract::PerlPPI - Collect translatable strings from Perl using PPI
 
 =chapter SYNOPSIS
+
   my $ppi = Log::Report::Extract::PerlPPI->new(
     lexicon => '/usr/share/locale',
   );
@@ -127,11 +129,11 @@ PPI v1.284 still does not support unicode by itself, so you need to help
 it by specifying the character-set which is used in the file.
 
 =fault cannot read perl from file $filename: $!
-=info no Perl in file $filename
-=info processing file $fn in $charset
-=warning use double quotes not single, in $string on $file line $line
+=info no Perl in file $filename.
+=info processing file $fn in $charset.
+=warning use double quotes not single, in $string on $file line $line.
 =error string is incorrect at line $line: $error
-=error count missing in $function in line $line
+=error count missing in $function in line $line.
 =cut
 
 sub process($@)
@@ -143,11 +145,11 @@ sub process($@)
 
 	my @childs = $doc->schildren;
 	if(@childs==1 && ref $childs[0] eq 'PPI::Statement')
-	{	info __x"no Perl in file {filename}", filename => $fn;
+	{	info __x"no Perl in file {filename}.", filename => $fn;
 		return 0;
 	}
 
-	info __x"processing file {fn} in {charset}", fn=> $fn, charset => $charset;
+	info __x"processing file {fn} in {charset}.", fn=> $fn, charset => $charset;
 	my ($pkg, $include, $domain, $msgs_found) = ('main', 0, undef, 0);
 
 NODE:
@@ -194,7 +196,7 @@ NODE:
 			my $node = $_[1];
 			my $word = $node->content;
 			if($word =~ $quote_mistake)
-			{	warning __x"use double quotes not single, in {string} on {file} line {line}",
+			{	warning __x"use double quotes not single, in {string} on {file} line {line}.",
 					string => $word, fn => $fn, line => $node->location->[0];
 				return 0;
 			}
@@ -216,7 +218,7 @@ NODE:
 
 			my $line = $node->location->[0];
 			unless($domain)
-			{	mistake __x"no text-domain for translatable at {fn} line {line}", fn => $fn, line => $line;
+			{	mistake __x"no text-domain for translatable at {fn} line {line}.", fn => $fn, line => $line;
 				return 0;
 			}
 
@@ -259,14 +261,13 @@ sub _get($$$$)
 		{	last if $sep !~ m/^ (?: | \=\> | [,;:] ) $/x;
 			$msgid = $first->string;
 
-			if(  $first->isa("PPI::Token::Quote::Double")
-			|| $first->isa("PPI::Token::Quote::Interpolate"))
+			if(  $first->isa("PPI::Token::Quote::Double") || $first->isa("PPI::Token::Quote::Interpolate"))
 			{	$first->string !~ m/(?<!\\)(\$\w+)/
-					or mistake __x"do not interpolate in msgid (found '{var}' in line {line})", var => $1, line => $line;
+					or mistake __x"do not interpolate in msgid (found '{var}' in line {line}).", var => $1, line => $line;
 
 				# content string is uninterpreted, warnings to screen
 				$msgid = eval "qq{$msgid}";
-				error __x "string is incorrect at line {line}: {error}", line => $line, error => $@ if $@;
+				error __x "string is incorrect at line {line}: {error}.", line => $line, error => $@ if $@;
 			}
 		}
 		elsif($first->isa('PPI::Token::Word'))
@@ -276,7 +277,7 @@ sub _get($$$$)
 		else { last }
 
 		$split || $msgid !~ s/(?<!\\)\n$//
-			or mistake __x "new-line is added automatically (found in line {line})", line => $line;
+			or mistake __x "new-line is added automatically (found in line {line}).", line => $line;
 
 		push @msgids, $msgid;
 		last if $nr_msgids==@msgids || !$sep;
@@ -287,7 +288,7 @@ sub _get($$$$)
 	my $next = $first->snext_sibling;
 
 	!$has_count || $next
-		or error __x"count missing in {function} in line {line}", function => $function, line => $line;
+		or error __x"count missing in {function} in line {line}.", function => $function, line => $line;
 
 	@msgids;
 }

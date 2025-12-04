@@ -55,11 +55,12 @@ needed for translations.
 When the charset is not specified, it will be taken from the content-type
 field in the po-file header.
 
+=fault failed reading from file {fn}: $!
 =fault cannot read in $charset from file $fn: $!
 =fault cannot read from file $fn (unknown charset): $!
-=error header not found for charset in $fn
-=error cannot detect charset in $fn
-=error unsupported charset $charset in $fn
+=error header not found for charset in $fn.
+=error cannot detect charset in $fn.
+=error unsupported charset $charset in $fn.
 =cut
 
 sub read($@)
@@ -90,13 +91,13 @@ sub read($@)
 	my $add = sub {
 		unless($charset)
 		{	$msgid eq ''
-				or error __x"header not found for charset in {fn}", fn => $fn;
+				or error __x"header not found for charset in {fn}.", fn => $fn;
 
 			$charset = $msgstr[0] =~ m/^content-type:.*?charset=["']?([\w-]+)/mi ? $1
-			  : error __x"cannot detect charset in {fn}", fn => $fn;
+			  : error __x"cannot detect charset in {fn}.", fn => $fn;
 
 			my $enc = find_encoding($charset)
-				or error __x"unsupported charset {charset} in {fn}", charset => $charset, fn => $fn;
+				or error __x"unsupported charset {charset} in {fn}.", charset => $charset, fn => $fn;
 
 			trace "auto-detected charset $charset for $fn";
 			binmode $fh, ":encoding($charset):crlf";
@@ -139,7 +140,7 @@ sub read($@)
 	$add->() if @msgstr;   # don't forget the last
 
 	close $fh
-		or failure __x"failed reading from file {fn}", fn => $fn;
+		or fault __x"failed reading from file {fn}", fn => $fn;
 
 	$self->{origcharset} = $charset;
 	$self->{filename}    = $fn;
@@ -169,10 +170,10 @@ sub index()     { $_[0]->{index} }
 # The index is a HASH with "$msg#$msgctxt" keys.  If there is no
 # $msgctxt, then there still is the #
 
-=method msgid STRING, [$msgctxt]
-Lookup the translations with the STRING.  Returns a SCALAR, when only
-one translation is known, and an ARRAY wherein there are multiple.
-Returns undef when the translation is not defined.
+=method msgid $msgid, [$msgctxt]
+Lookup the translations with the $msgidj.  Returns a SCALAR, when only
+one translation is known, and an ARRAY where there are multiple.
+Returns undef when nothing about the translation is known.
 =cut
 
 sub msgid($) { $_[0]->{index}{$_[1].'#'.($_[2]//'')} }
@@ -205,7 +206,7 @@ sub msgstr($;$$)
 
 sub _unescape($$)
 {	unless( $_[0] =~ m/^\s*\"(.*)\"\s*$/ )
-	{	warning __x"string '{text}' not between quotes at {location}", text => $_[0], location => $_[1];
+	{	warning __x"string '{text}' not between quotes at {location}.", text => $_[0], location => $_[1];
 		return $_[0];
 	}
 	unescape_chars $1;
