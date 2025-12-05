@@ -8,7 +8,7 @@ package Log::Report::Translator::Context;
 use warnings;
 use strict;
 
-use Log::Report 'log-report-lexicon';
+use Log::Report 'log-report-lexicon', import => [ qw/__x error warning/ ];
 
 #--------------------
 =chapter NAME
@@ -17,8 +17,7 @@ Log::Report::Translator::Context - handle translation contexts
 =chapter SYNOPSIS
 
   # usually, the context information is in a separate file
-  textdomain 'my-domain',
-    config => $filename;
+  textdomain 'my-domain', config => $filename;
 
 =chapter DESCRIPTION
 

@@ -9,7 +9,7 @@ use base 'Log::Report::Lexicon::Table';
 use warnings;
 use strict;
 
-use Log::Report 'log-report-lexicon';
+use Log::Report 'log-report-lexicon', import => [ qw/__ __x error fault trace/ ];
 use Log::Report::Lexicon::PO  ();
 
 use POSIX        qw/strftime/;
@@ -105,7 +105,7 @@ Overrule the date which is included in the generated header.
 Specify an output filename.  The name can also be specified when
 M<write()> is called.
 
-=error textdomain parameter is required
+=error textdomain parameter is required.
 =cut
 
 sub init($)
@@ -117,7 +117,7 @@ sub init($)
 
 	my $version    = $args->{version};
 	my $domain     = $args->{textdomain}
-		or error __"textdomain parameter is required";
+		or error __x"textdomain parameter is required.";
 
 	my $forms      = $args->{plural_forms};
 	unless($forms)
@@ -146,8 +146,8 @@ this explicitly.
 
 =fault cannot read in $cs from file $fn: $!
 =fault cannot read from file $fn (unknown charset): $!
-=error cannot detect charset in $fn
-=error unsupported charset $charset in $fn
+=error cannot detect charset in $fn.
+=error unsupported charset $charset in $fn.
 =fault failed reading from file $fn: $!
 =cut
 
@@ -183,13 +183,13 @@ sub read($@)
 
 		unless($charset)
 		{	$charset = $block =~ m/\"content-type:.*?charset=["']?([\w-]+)/mi ? $1
-			  : error __x"cannot detect charset in {fn}", fn => $fn;
+			  : error __x"cannot detect charset in {fn}.", fn => $fn;
 
 			trace "auto-detected charset $charset for $fn";
 			binmode $fh, ":encoding($charset):crlf";
 
 			$block = decode $charset, $block
-				or error __x"unsupported charset {charset} in {fn}", charset => $charset, fn => $fn;
+				or error __x"unsupported charset {charset} in {fn}.", charset => $charset, fn => $fn;
 		}
 
 		my $po = Log::Report::Lexicon::PO->fromText($block, $location);
@@ -224,7 +224,7 @@ specified explicitly, or set beforehand using the M<filename()>
 method, or known because the write follows a M<read()> of the file.
 =cut
 
-=error no filename or file-handle specified for PO
+=error no filename or file-handle specified for PO.
 =fault cannot write to file $fn with $layers: $!
 =cut
 
@@ -234,7 +234,7 @@ sub write($@)
 	my %args = @_;
 
 	defined $file
-		or error __"no filename or file-handle specified for PO";
+		or error __x"no filename or file-handle specified for PO.";
 
 	my $need_refs = $args{only_active};
 	my @opt       = (nr_plurals => $self->nrPlurals);
@@ -264,7 +264,7 @@ sub write($@)
 	}
 
 	$fh->close
-		or failure __x"write errors for file {fn}", fn => $file;
+		or fault __x"write errors for file {fn}", fn => $file;
 
 	$self;
 }
@@ -334,7 +334,7 @@ sub msgstr($;$$)
 Add the information from a $po into this POT.  If the msgid of the $po
 is already known, that is an error.
 
-=error translation already exists for '$msgid' with '$ctxt
+=error translation already exists for '$msgid' with '$ctxt'.
 =cut
 
 sub add($)
@@ -349,7 +349,7 @@ sub add($)
 		if blessed $h;
 
 	my $ctxt = $po->msgctxt // '';
-	error __x"translation already exists for '{msgid}' with '{ctxt}", msgid => $msgid, ctxt => $ctxt
+	error __x"translation already exists for '{msgid}' with '{ctxt}'.", msgid => $msgid, ctxt => $ctxt
 		if $h->{$ctxt};
 
 	$h->{$ctxt} = $po;
@@ -360,14 +360,14 @@ Returns a list with all defined Log::Report::Lexicon::PO objects. When
 the string $active is given as parameter, only objects which have
 references are returned.
 
-=error the only acceptable parameter is 'ACTIVE', not '$p'
+=error the only acceptable parameter is 'ACTIVE', not '$p'.
 =cut
 
 sub translations(;$)
 {	my $self = shift;
 	@_ or return map +(blessed $_ ? $_ : values %$_), values %{$self->index};
 
-	error __x"the only acceptable parameter is 'ACTIVE', not '{p}'", p => $_[0]
+	error __x"the only acceptable parameter is 'ACTIVE', not '{p UNKNOWN}'.", p => $_[0]
 		if $_[0] ne 'ACTIVE';
 
 	grep $_->isActive, $self->translations;
@@ -381,7 +381,7 @@ the knowledge will be stored.  In latter case, the header structure
 may get created.  When the $content is set to undef, the field will
 be removed.
 
-=error no header defined in POT for file $fn
+=error no header defined in POT for file $fn.
 =cut
 
 sub _now() { strftime "%Y-%m-%d %H:%M%z", localtime }
@@ -389,7 +389,7 @@ sub _now() { strftime "%Y-%m-%d %H:%M%z", localtime }
 sub header($;$)
 {	my ($self, $field) = (shift, shift);
 	my $header = $self->msgid(MSGID_HEADER)
-		or error __x"no header defined in POT for file {fn}", fn => $self->filename;
+		or error __x"no header defined in POT for file {fn}.", fn => $self->filename;
 
 	if(!@_)
 	{	my $text = $header->msgstr(0) || '';

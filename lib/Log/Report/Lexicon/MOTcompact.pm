@@ -9,7 +9,8 @@ use base 'Log::Report::Lexicon::Table';
 use warnings;
 use strict;
 
-use Log::Report  'log-report-lexicon';
+use Log::Report  'log-report-lexicon', import => [ qw/__x error fault trace/ ];
+
 use Fcntl        qw/SEEK_SET/;
 use Encode       qw/find_encoding/;
 
@@ -189,7 +190,7 @@ sub read($@)
 	}
 
 	close $fh
-		or failure __x"failed reading from file {fn}", fn => $fn;
+		or fault __x"failed reading from file {fn}", fn => $fn;
 
 	$self->{origcharset} = $charset;
 	$self->setupPluralAlgorithm;

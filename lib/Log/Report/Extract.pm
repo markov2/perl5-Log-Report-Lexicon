@@ -8,7 +8,7 @@ package Log::Report::Extract;
 use warnings;
 use strict;
 
-use Log::Report 'log-report-lexicon';
+use Log::Report 'log-report-lexicon';  # import all
 use Log::Report::Lexicon::Index ();
 use Log::Report::Lexicon::POT   ();
 
@@ -32,15 +32,15 @@ translations exist yet, one C<textdomain/xx.po> file will be created.
 
 =c_method new %options
 
-=requires lexicon DIRECTORY
+=requires lexicon $directory
 The place where the lexicon is kept.  When no lexicon is defined yet,
-this will be the directory where an C<domain/xx.po> file will be created.
+this will be the $directory where an C<domain/xx.po> file will be created.
 
-=option  charset STRING
+=option  charset $charset
 =default charset 'utf-8'
 The character-set used in the PO files.
 
-=error extractions require an explicit lexicon directory
+=error extractions require an explicit lexicon directory.
 =fault cannot create lexicon directory $dir: $!
 =cut
 
@@ -52,7 +52,7 @@ sub new(@)
 sub init($)
 {	my ($self, $args) = @_;
 	my $lexi = $args->{lexicon} || $args->{lexicons}
-		or error __"extractions require an explicit lexicon directory";
+		or error __x"extractions require an explicit lexicon directory.";
 
 	-d $lexi or mkdir $lexi
 		or fault __x"cannot create lexicon directory {dir}", dir => $lexi;

@@ -8,7 +8,7 @@ package Log::Report::Lexicon::Table;
 use warnings;
 use strict;
 
-use Log::Report 'log-report-lexicon';
+use Log::Report 'log-report-lexicon', import => [ qw/__x error panic/ ];
 
 #--------------------
 =chapter NAME

@@ -9,7 +9,7 @@ use base 'Log::Report::Lexicon::Table';
 use warnings;
 use strict;
 
-use Log::Report        'log-report-lexicon';
+use Log::Report        'log-report-lexicon', import => [ qw/__x error fault trace warning/ ];
 use Log::Report::Util  qw/escape_chars unescape_chars/;
 
 use Encode             qw/find_encoding/;
@@ -171,7 +171,7 @@ sub index()     { $_[0]->{index} }
 # $msgctxt, then there still is the #
 
 =method msgid $msgid, [$msgctxt]
-Lookup the translations with the $msgidj.  Returns a SCALAR, when only
+Lookup the translations with the $msgid.  Returns a SCALAR, when only
 one translation is known, and an ARRAY where there are multiple.
 Returns undef when nothing about the translation is known.
 =cut

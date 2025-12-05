@@ -9,7 +9,7 @@ use base 'Log::Report::Translator';
 use warnings;
 use strict;
 
-use Log::Report 'log-report-lexicon';
+use Log::Report 'log-report-lexicon', import => [ qw/__x error info panic/ ];
 
 use Log::Report::Lexicon::Index;
 use Log::Report::Lexicon::POTcompact;

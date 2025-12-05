@@ -8,8 +8,9 @@ package Log::Report::Lexicon::Index;
 use warnings;
 use strict;
 
-use Log::Report       'log-report-lexicon';
+use Log::Report       'log-report-lexicon', import => [ ];
 use Log::Report::Util  qw/parse_locale/;
+
 use File::Find         ();
 
 # The next two need extension when other lexicon formats are added

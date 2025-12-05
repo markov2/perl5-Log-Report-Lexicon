@@ -8,7 +8,7 @@ package Log::Report::Lexicon::PO;
 use warnings;
 use strict;
 
-use Log::Report 'log-report-lexicon';
+use Log::Report 'log-report-lexicon', import => [ qw/__x error warning/ ];
 
 # steal from cheaper module, we have no ::Util for this (yet)
 use Log::Report::Lexicon::POTcompact ();
@@ -85,7 +85,7 @@ sub new(@)
 sub init($)
 {	my ($self, $args) = @_;
 	defined($self->{msgid} = delete $args->{msgid})
-		or error __"no msgid defined for PO.";
+		or error __x"no msgid defined for PO.";
 
 	$self->{plural}  = delete $args->{msgid_plural};
 	$self->{msgstr}  = delete $args->{msgstr};
@@ -342,7 +342,7 @@ sub addFlags($)
 		elsif($flag =~ m/^no-(.*)-format$/) { $self->format($1, 0) }
 		elsif($flag =~ m/^(.*)-format$/)    { $self->format($1, 1) }
 		else
-		{	warning __x"unknown flag {flag} ignored", flag => $flag;
+		{	warning __x"unknown flag {flag UNKNOWN} ignored", flag => $flag;
 		}
 	}
 	$_;
@@ -355,11 +355,11 @@ sub addFlags($)
 Parse the STRING into a new PO object.  The $where string should explain
 the location of the STRING, to be used in error messages.
 
-=warning unknown comment type '$cmd' at $where
-=warning do not understand command '$cmd' at $where
-=warning quoted line is not a continuation at $where
+=warning unknown comment type '$cmd' at $where.
+=warning do not understand command '$cmd' at $where.
+=warning quoted line is not a continuation at $where.
 =warning do not understand line at $where:\n  $line
-=warning no msgid in block $where
+=warning no msgid in block $where.
 =cut
 
 sub fromText($$)
@@ -382,7 +382,7 @@ sub fromText($$)
 			elsif($1 eq ':' ) { $self->addReferences($_) }
 			elsif($1 eq ',' ) { $self->addFlags($_)      }
 			else
-			{	warning __x"unknown comment type '{cmd}' at {where}", cmd => "#$1", where => $where;
+			{	warning __x"unknown comment type '{cmd}' at {where}.", cmd => "#$1", where => $where;
 			}
 			undef $last;
 		}
@@ -407,7 +407,7 @@ sub fromText($$)
 				$last = \($self->{msgctxt});
 			}
 			else
-			{	warning __x"do not understand command '{cmd}' at {where}", cmd => $cmd, where => $where;
+			{	warning __x"do not understand command '{cmd}' at {where}.", cmd => $cmd, where => $where;
 				undef $last;
 			}
 		}
@@ -418,7 +418,7 @@ sub fromText($$)
 		elsif( m/^\s*\"/ )
 		{	if(defined $last) { $$last .= _unescape($_, $where) }
 			else
-			{	warning __x"quoted line is not a continuation at {where}", where => $where;
+			{	warning __x"quoted line is not a continuation at {where}.", where => $where;
 			}
 		}
 		else
@@ -427,7 +427,7 @@ sub fromText($$)
 	}
 
 	defined $self->{msgid}
-		or warning __x"no msgid in block {where}", where => $where;
+		or warning __x"no msgid in block {where}.", where => $where;
 
 	$self;
 }
@@ -441,8 +441,8 @@ If the number of plurals is specified, then the plural translation
 list can be checked for the correct length.  Otherwise, no smart
 behavior is attempted.
 
-=warning too many plurals for '$msgid'
-=warning no plurals for '$msgid'
+=warning too many plurals for '$msgid': $got > $expect.
+=warning no plurals expected for '$msgid'.
 =cut
 
 sub toString(@)
@@ -496,7 +496,7 @@ sub toString(@)
 			while defined $nplurals && @msgstr < $nplurals;
 
 		if(defined $nplurals && @msgstr > $nplurals)
-		{	warning __x"too many plurals for '{msgid}'", msgid => $msgid;
+		{	warning __x"too many plurals for '{msgid}: {got} > {expect}.'", msgid => $msgid, got => scalar @msgstr, expect => $nplurals;
 			$#msgstr = $nplurals -1;
 		}
 
@@ -506,7 +506,7 @@ sub toString(@)
 		}
 	}
 	else
-	{	warning __x"no plurals for '{msgid}'", msgid => $msgid if @msgstr > 1;
+	{	warning __x"no plurals expected for '{msgid}'.", msgid => $msgid if @msgstr > 1;
 		push @record, "${active}msgstr " . _escape($msgstr[0], "\n$active") . "\n";
 	}
 

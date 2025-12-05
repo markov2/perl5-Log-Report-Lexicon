@@ -9,7 +9,7 @@ use base 'Exporter';
 use warnings;
 use strict;
 
-use Log::Report 'log-report-lexicon';
+use Log::Report 'log-report-lexicon', import => [ ];
 
 our @EXPORT = qw/
 	codepage_to_iso
